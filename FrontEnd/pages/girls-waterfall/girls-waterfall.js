@@ -141,6 +141,13 @@ Page({
     saveToCache(picList);
   },
 
+  onGoToDetail(event) {
+    const gid = event.detail.gid
+    wx.navigateTo({
+      url: '/packageDetail/girl-detail/girl-detail?gid=' + gid,
+    })
+  },
+
   onLoad() {
     this.loadData();
   },
