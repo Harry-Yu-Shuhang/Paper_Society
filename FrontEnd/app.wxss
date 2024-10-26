@@ -1,0 +1,14 @@
+text{
+  color:#666;
+}
+
+.center {
+  align-items: center;
+  justify-content: center; 
+}
+
+grid-tile {
+  align-items: center;
+  justify-content: center; 
+  overflow: hidden;
+}

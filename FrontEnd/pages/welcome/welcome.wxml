@@ -1,0 +1,26 @@
+<view class="container">
+  <block wx:if="{{!hasUserInfo}}">
+    <view class="welcome-new">
+      <!-- <image class="l-avatar" src="/images/avatar/纸片社头像.jpg" mode="aspectFit"/> -->
+      <image class="l-avatar" src="/images/Paper_Society.jpg" mode="aspectFit"/>
+      
+      <text class="hello-new">欢迎光临纸片社！</text>
+      <text class="hello-motto">点击下方按钮</text>
+      <van-button color="#b3d4db" bind:tap="getUserProfile" custom-class="van-ui-start-button">开启二次元之旅</van-button>
+    </view>
+  </block>
+  
+  <!-- 如果已经获得用户信息，展示 加载按钮 -->
+  <!-- 缓存代码见js文件 -->
+  <block wx:else>
+    <view class="welcome-new">
+      <!-- 两个大括号绑定javascript中的变量 -->
+      <!-- <image class="l-avatar" src="/images/avatar/纸片社头像.jpg" mode="aspectFit"/> -->
+      <image class="l-avatar" src="/images/Paper_Society.jpg" mode="aspectFit"/>
+      <text class="hello-new">Hello, {{userInfo.nickName}}</text>
+      <text class="hello-motto">看板娘在全力冲刺啦</text>
+      <van-button loading custom-class="van-ui-start-button" type="info" loading-text="加载中..." />
+      <text class="loading-motto">马上就进入二次元哦!</text>
+    </view>
+  </block>
+</view>

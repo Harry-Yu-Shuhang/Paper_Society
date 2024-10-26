@@ -1,0 +1,59 @@
+/* 页面背景 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #ededed;
+}
+
+/* 固定加载窗 */
+.loading-window {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: #ffffff; /* 加载窗背景颜色 */
+  padding: 20rpx;
+  border-radius: 20rpx;
+  box-shadow: 0px 0px 20rpx rgba(0, 0, 0, 0.1); /* 阴影效果 */
+}
+
+/* 图标样式 */
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%; /* 圆形图标 */
+  margin-right: 10rpx;
+}
+
+/* 文字样式 */
+.loading-text {
+  display: flex;
+  font-size: 28rpx;
+  color: #555555;
+  align-items: center;
+}
+
+/* 单个点跳动效果 */
+.jump {
+  animation: dot-bounce 0.8s ease-in-out;
+}
+
+/* 向上跳 h，再回到原地，回弹 0.25h，最终稳定 */
+@keyframes dot-bounce {
+  0% {
+    transform: translateY(0); /* 初始位置 */
+  }
+  25% {
+    transform: translateY(-6rpx); /* 向上跳 h */
+  }
+  50% {
+    transform: translateY(0); /* 回到原地 */
+  }
+  75% {
+    transform: translateY(-2rpx); /* 向上回弹 0.25h */
+  }
+  100% {
+    transform: translateY(0); /* 回到初始位置 */
+  }
+}

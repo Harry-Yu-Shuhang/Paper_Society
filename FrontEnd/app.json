@@ -1,0 +1,42 @@
+{
+  "pages": [
+    "pages/welcome/welcome",
+    "pages/girls-waterfall/girls-waterfall",
+    "pages/rank/rank"
+  ],
+  "lazyCodeLoading": "requiredComponents",
+  "entryPagePath": "pages/rank/rank",
+  "window": {
+    "navigationBarBackgroundColor": "#b3d4db"
+  },
+  "tabBar": {
+    "selectedColor": "#434d54",
+    "color": "#999999",
+    "list": [
+      {
+        "text": "排行榜",
+        "pagePath": "pages/rank/rank",
+        "iconPath": "images/tabbar/rank.png",
+        "selectedIconPath": "images/tabbar/rank_fill.png"
+      },
+      {
+        "text": "角色库",
+        "pagePath": "pages/girls-waterfall/girls-waterfall",
+        "iconPath": "images/tabbar/店铺.png",
+        "selectedIconPath": "images/tabbar/店铺-fill.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "subPackages": [
+    {
+      "root": "packageDetail",
+      "pages": [
+        "girl-detail/girl-detail"
+      ]
+    }
+  ],
+  "usingComponents": {
+    "girl": "/components/girl/index"
+  }
+}
