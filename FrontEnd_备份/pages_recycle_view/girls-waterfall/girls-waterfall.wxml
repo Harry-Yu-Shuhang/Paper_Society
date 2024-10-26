@@ -1,0 +1,31 @@
+<recycle-view id="recycleId" scroll-y="true" enable-back-to-top bindscroll="onScroll" batch="{{batchSetRecycleData}}" class="container">
+  <!-- 搜索框 -->
+  <van-search 
+    value="{{ value }}"
+    placeholder="查找你的二次元女孩"
+    bind:search="onSearch"
+    bind:cancel="onCancel"
+    show-action
+  />
+
+  <!-- 如果搜索结果不存在，显示原始数据 -->
+  <block wx:if="{{!searchExist}}">
+    <recycle-item wx:for="{{columns}}" wx:key="id" class="column">
+      <view wx:for="{{item}}" wx:key="id" class="column_item" >
+        <!-- 输出图片 -->
+        <girl-show bind:profileTap="onGoToDetail" girls="{{item}}"></girl-show>
+      </view>
+    </recycle-item>
+  </block>
+
+  <!-- 如果搜索结果存在，显示搜索结果 -->
+  <block wx:else>
+    <recycle-item wx:for="{{searchResults}}" wx:key="id" class="column">
+      <view wx:for="{{item}}" wx:key="id" class="column_item">
+        <!-- 输出图片 -->
+        <girl-show bind:profileTap="onGoToDetail" girls="{{item}}"></girl-show>
+      </view>
+    </recycle-item>
+  </block>
+
+</recycle-view>

@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "van-icon": "@vant/weapp/icon/index",
+    "post": "/components/post/index"
+  },
+  "navigationBarTitleText": "纸片社初代首页",
+  "initialRenderingCache": "static"
+}

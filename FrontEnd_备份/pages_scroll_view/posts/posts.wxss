@@ -1,0 +1,74 @@
+.container{
+  display: flex;
+  flex-direction: column;
+}
+
+.popularity-top{
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+.popularity{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items:flex-end;
+}
+
+.popularity-text{
+  font-size: 35rpx;
+  color: #666;
+  margin-left: 10rpx;
+  margin-top:10rpx;
+  font-weight: 450;
+  margin-bottom: 10rpx;
+}
+
+.popularity-update{
+  font-size: 22rpx;
+  color: #999;
+  margin-left: auto;
+  margin-right: 20rpx;
+  margin-bottom: 7rpx;
+}
+
+.popularity-tab{
+  margin-top: 15rpx;
+}
+
+/* 对所有swiper应用 */
+swiper{
+  width: 100%;
+  height: 460rpx;
+}
+
+/* 对swiper下面所有image应用 */
+swiper image{
+  width: 100%;
+  height: 460rpx;
+}
+
+.tool{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.horizon-line{
+  width:725rpx;
+  height:1px;
+  background-color: #e5e5e5;
+}
+
+.score-top{
+  display:flex;
+  flex-direction: column;
+  background-color: white;
+  margin-top:30rpx;
+}
+
+page{
+  background-color:#f2f2f2; 
+}

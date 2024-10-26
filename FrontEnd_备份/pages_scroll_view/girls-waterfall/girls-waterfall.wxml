@@ -1,0 +1,34 @@
+<scroll-view scroll-y="true" class="container">
+  <!-- 搜索框 -->
+  <van-search 
+  value="{{ value }}"
+  placeholder="查找你的二次元女孩"
+  bind:search="onSearch"
+  bind:cancel="onCancel"
+  show-action
+  />
+
+  <!-- 全部数据的瀑布流渲染,在没有搜索结果的时候显示 -->
+  <view wx:if="{{!searchExist}}">
+    <view class="main">
+      <view wx:for="{{columns}}" class="column" wx:key="index">
+        <view wx:for="{{item}}" class="column_item" wx:key="id">
+          <!-- 输出图片 -->
+          <girl-show bind:profileTap="onGoToDetail" girls="{{item}}"></girl-show>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else>
+    <view class="main">
+      <view wx:for="{{columns}}" class="column" wx:key="index">
+        <view wx:for="{{item}}" class="column_item" wx:key="id">
+          <!-- 输出图片 -->
+          <girl-show bind:profileTap="onGoToDetail" girls="{{item}}"></girl-show>
+        </view>
+      </view>
+    </view>
+  </view>
+
+</scroll-view>

@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "van-search": "@vant/weapp/search/index",
+    "van-icon": "@vant/weapp/icon/index",
+    "girl-show":"/components/girl-show/girl-show"
+  },
+  "initialRenderingCache": "dynamic"
+}
