@@ -11,6 +11,10 @@ Component({
     textContent: {
       type: Array,
       value: ['加', '载', '中', '.', '.', '.'] // 默认加载文字
+    },
+    delay: {
+      type: Number,
+      value: 100 // 每个字符动画的默认延时（毫秒）
     }
   },
 
@@ -61,7 +65,7 @@ Component({
         }
         this.setData({ currentIndex: newIndex });
 
-        // 设置延时，等待动画完成后跳到下一个字符
+        // 使用传入的 `frequency` 值来设置跳动的时间间隔
         this.jumpTimeout = setTimeout(jumpNext, this.data.frequency);
       };
 

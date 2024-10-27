@@ -43,7 +43,7 @@ function fetchScoreRankList() {
 
 // 获取首页数据
 function fetchWaterFallList() {
-  return sendRequest(girls_profile_waterfall, 'POST', {});
+  return sendRequest(girls_profile_waterfall, 'GET', {});
 }
 
 export {

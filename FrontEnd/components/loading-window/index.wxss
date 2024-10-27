@@ -1,10 +1,16 @@
 /* 页面背景 */
 .loading-container {
+  position: fixed; /* 固定位置 */
+  top: 50%; /* 垂直居中 */
+  left: 50%; /* 水平居中 */
+  transform: translate(-50%, -50%); /* 偏移调整 */
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #ededed;
+  width: 100%; /* 使容器铺满宽度 */
+  height: 100%; /* 使容器铺满高度 */
+  background-color: rgba(237, 237, 237, 0.8); /* 半透明背景遮罩 */
+  z-index: 1000; /* 保证在最前 */
 }
 
 /* 固定加载窗 */

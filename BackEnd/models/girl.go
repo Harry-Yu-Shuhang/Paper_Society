@@ -7,6 +7,7 @@ type Girl struct { //从girls表获取数据
 	Hot         int
 	AverageRate float64
 	GirlSrc     string
+	Views       int
 }
 
 // TableName 指定表名

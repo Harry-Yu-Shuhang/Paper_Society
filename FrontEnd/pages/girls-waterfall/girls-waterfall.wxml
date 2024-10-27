@@ -1,16 +1,21 @@
-<scroll-view scroll-y="true" class="container">
+<!-- 加载动画组件，显示在scroll-view顶部 -->
+<loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
+<!-- 页面 wxml -->
+<scroll-view 
+  class="container"  
+  enable-back-to-top 
+  scroll-y 
+  refresher-enabled="{{true}}" 
+>
+
   <!-- 搜索框 -->
   <van-search 
-  value="{{ value }}"
-  placeholder="查找你的二次元女孩"
-  bind:search="onSearch"
-  bind:cancel="onCancel"
-  show-action
+    value="{{value}}"
+    placeholder="查找你的二次元女孩"
+    bind:search="onSearch"
+    bind:cancel="onCancel"
+    show-action
   />
-
-  <!-- 加载动画，在加载时显示 -->
-  <!-- 可以按需传入frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}" -->
-  <loading-window wx:if="{{isLoading}}"></loading-window>
 
   <!-- 全部数据的瀑布流渲染,在没有搜索结果的时候显示 -->
   <view wx:if="{{!searchExist}}">
@@ -34,5 +39,4 @@
       </view>
     </view>
   </view>
-
 </scroll-view>

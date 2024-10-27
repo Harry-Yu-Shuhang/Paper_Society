@@ -1,84 +1,59 @@
 package controllers
 
 import (
-	"math/rand"
 	"net/http"
 	"paper_community/dao"
 	"paper_community/models"
-	"time"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type GirlWaterFallController struct{}
 
-var photo_step = 10
-
 // GirlProfile 包含前端需要的女孩信息
 type GirlProfile struct {
 	ID      int    `json:"id"`
 	GirlSrc string `json:"girlSrc"`
 	Name    string `json:"name"`
+	Views   int    `json:"views"`
 }
 
-// ExcludeAndFetchGirls 接收缓存数据的 ID 列表，排除这些数据并返回随机的 5 条记录
-func (g GirlWaterFallController) ExcludeAndFetchGirls(c *gin.Context) {
-	var cachedData struct {
-		IDs []int `json:"ids"` // 缓存中已存在的女孩 ID 列表
+func (g GirlWaterFallController) GetGirlsByIDPagination(c *gin.Context) {
+	lastIDStr := c.DefaultQuery("last_id", "0")
+	lastID, err := strconv.Atoi(lastIDStr)
+	if err != nil || lastID < 0 {
+		lastID = 0
 	}
 
-	// 从请求中绑定 JSON 数据
-	if err := c.ShouldBindJSON(&cachedData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
-		return
-	}
-
-	// 查询数据库中未包含在缓存 ID 列表中的记录
+	const pageSize = 10
 	var girls []models.Girl
-	db := dao.Db
-	if len(cachedData.IDs) > 0 {
-		db = db.Not("id IN (?)", cachedData.IDs)
-	}
+	db := dao.Db.Order("id ASC").Where("id > ?", lastID).Limit(pageSize)
+
 	if err := db.Find(&girls).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
 		return
 	}
 
-	// 如果数据库查询到的数据少于5条，直接返回全部数据
-	if len(girls) <= photo_step {
-		selectedGirls := make([]GirlProfile, len(girls))
-		for i, girl := range girls {
-			selectedGirls[i] = GirlProfile{
-				ID:      girl.ID,
-				GirlSrc: girl.GirlSrc,
-				Name:    girl.Name,
-			}
+	selectedGirls := make([]GirlProfile, len(girls))
+	for i, girl := range girls {
+		selectedGirls[i] = GirlProfile{
+			ID:      girl.ID,
+			GirlSrc: girl.GirlSrc,
+			Name:    girl.Name,
+			Views:   girl.Views,
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Girls data fetched successfully",
-			"data":    selectedGirls,
-		})
-		return
 	}
 
-	// 随机生成种子并打乱数据，返回前5条
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(girls), func(i, j int) { girls[i], girls[j] = girls[j], girls[i] })
-
-	selectedGirls := make([]GirlProfile, 0, photo_step)
-	for i := 0; i < photo_step; i++ {
-		selectedGirls = append(selectedGirls, GirlProfile{
-			ID:      girls[i].ID,
-			GirlSrc: girls[i].GirlSrc,
-			Name:    girls[i].Name,
-		})
+	// 传递下一次分页的 last_id
+	var nextID int
+	if len(girls) > 0 {
+		nextID = girls[len(girls)-1].ID
 	}
 
-	// fmt.Println("selectedGirls是", selectedGirls)
-
-	// 返回结果
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Girls data fetched successfully excluding cached data",
+		"message": "Paged girls data fetched successfully",
 		"data":    selectedGirls,
+		"next_id": nextID,
 	})
 }
