@@ -1,19 +1,21 @@
 <!-- 加载动画组件，显示在scroll-view顶部 -->
 <loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
-<!-- 页面 wxml -->
-<scroll-view 
-  class="container"  
-  enable-back-to-top 
-  scroll-y 
-  refresher-enabled="{{true}}" 
->
 
+<!-- 加载成功组件 -->
+<success-window wx:if="{{isSuccess}}" />
+
+<!-- 加载失败组件 -->
+<fail-window wx:if="{{isFail}}" text="{{failReason}}" />
+
+<!-- 页面的内容 -->
+<view class="container">
   <!-- 搜索框 -->
   <van-search 
     value="{{value}}"
     placeholder="查找你的二次元女孩"
     bind:search="onSearch"
     bind:cancel="onCancel"
+    bind:clear="onClear"
     show-action
   />
 
@@ -39,4 +41,4 @@
       </view>
     </view>
   </view>
-</scroll-view>
+</view>

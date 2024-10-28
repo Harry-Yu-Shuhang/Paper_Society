@@ -1,0 +1,45 @@
+<!-- 加载动画组件，显示在scroll-view顶部 -->
+<loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
+
+<!-- 页面 wxml -->
+<custom-pull-down class="custom-pull-down">
+  <view name="refresh-animation"></view>
+  <view slot="refresh-before-trigger" class="custom-refresh-zone-tips-loading">继续下拉刷新</view>
+  <view slot="refresh-after-trigger" class="custom-refresh-zone-tips-loading">释放刷新</view>
+  <view slot="refresh-loading" class="custom-refresh-zone-tips-loading">加载中</view>
+
+  <!-- 页面的内容 -->
+  <view slot="content">
+    <!-- 搜索框 -->
+    <van-search 
+      value="{{value}}"
+      placeholder="查找你的二次元女孩"
+      bind:search="onSearch"
+      bind:cancel="onCancel"
+      show-action
+    />
+
+    <!-- 全部数据的瀑布流渲染,在没有搜索结果的时候显示 -->
+    <view wx:if="{{!searchExist}}">
+      <view class="main">
+        <view wx:for="{{columns}}" class="column" wx:key="index">
+          <view wx:for="{{item}}" class="column_item" wx:key="girl_id">
+            <!-- 输出图片 -->
+            <girl-show bind:profileTap="onGoToDetail" girls="{{item}}"></girl-show>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else>
+      <view class="main">
+        <view wx:for="{{columns}}" class="column" wx:key="index">
+          <view wx:for="{{item}}" class="column_item" wx:key="girl_id">
+            <!-- 输出图片 -->
+            <girl-show bind:profileTap="onGoToDetail" girls="{{item}}"></girl-show>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</custom-pull-down>

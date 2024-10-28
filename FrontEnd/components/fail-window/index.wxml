@@ -1,0 +1,8 @@
+<view class="loading-container">
+  <view class="loading-window">
+    <image src="/images/cry.jpg" class="loading-icon"></image>
+    <view class="loading-text">
+      {{text}}
+    </view>
+  </view>
+</view>

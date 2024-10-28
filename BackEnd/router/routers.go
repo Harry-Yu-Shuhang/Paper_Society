@@ -25,7 +25,8 @@ func Router() *gin.Engine {
 	{
 		girls.GET("/rank/hot", controllers.GirlRankController{}.GetGirlsHotRank)
 		girls.GET("/rank/score", controllers.GirlRankController{}.GetGirlsScoreRank)
-		girls.GET("/profile/waterfall", controllers.GirlWaterFallController{}.GetGirlsByIDPagination)
+		girls.POST("/profile/waterfall", controllers.GirlWaterFallController{}.PostRandomGirls)
+		girls.GET("/profile/search", controllers.GirlWaterFallController{}.GetSearchGirls)
 	}
 
 	return r

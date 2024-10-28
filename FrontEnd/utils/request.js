@@ -1,4 +1,4 @@
-import { baseURL, user_login, girls_rank_hot, girls_rank_score, girls_profile_waterfall } from './common_data';
+import { baseURL, user_login, girls_rank_hot, girls_rank_score, girls_profile_waterfall, girls_profile_search } from './common_data';
 
 // 通用请求函数，使用 async/await
 async function sendRequest(endpoint, method, data) {
@@ -42,8 +42,17 @@ function fetchScoreRankList() {
 }
 
 // 获取首页数据
-function fetchWaterFallList() {
-  return sendRequest(girls_profile_waterfall, 'GET', {});
+function fetchWaterFallList(params = {}) {
+  console.log(params)
+  return sendRequest(girls_profile_waterfall, 'POST', params);
+}
+
+// 搜索数据请求函数
+// function fetchSearchList(keyword) {
+//   return sendRequest(girls_profile_search, 'POST', { keyword });
+// }
+function fetchSearchList(keyword) {
+  return sendRequest(`/girls/profile/search?keyword=${encodeURIComponent(keyword)}`, 'GET');
 }
 
 export {
@@ -51,4 +60,5 @@ export {
   fetchHotRankList,
   fetchScoreRankList,
   fetchWaterFallList,
+  fetchSearchList,
 };

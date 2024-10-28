@@ -1,0 +1,120 @@
+/* 骨架屏样式 */
+.skeleton-profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #f0f0f0;
+  border-radius: 12rpx;
+  box-shadow: 0 5rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.skeleton-picture {
+  width: 120rpx;
+  height: 120rpx;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  margin-left: 25rpx;
+}
+
+.skeleton-name {
+  margin-left: 20rpx;
+  height: 40rpx;
+  background-color: #e0e0e0;
+  border-radius: 8rpx;
+  min-width: 200rpx; /* 设置最小宽度，确保其显示 */
+}
+
+.skeleton-value {
+  width: 60rpx;
+  height: 40rpx;
+  background-color: #e0e0e0;
+  border-radius: 8rpx;
+  margin-right:60rpx;
+}
+
+/* 骨架屏样式结束 */
+
+/* 现有排行榜样式 */
+.leaderboard__profiles {
+  background-color: #fff;
+  border-radius: 0 0 12rpx 12rpx;
+  padding: 30rpx 30rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.leaderboard__profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #fff;
+  border-radius: 12rpx;
+  box-shadow: 0 5rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard__picture {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  box-shadow: 0 0 0 20rpx #ebeef3, 0 0 0 44rpx #f3f4f6;
+  object-fit: cover;
+}
+
+.leaderboard {
+  max-width: 100%;
+  width: 100%;
+  border-radius: 12rpx;
+  box-shadow: 0 0 80rpx -20rpx rgba(0, 0, 0, 0.4);
+  overflow-x: hidden; /* 禁止横向滚动 */
+}
+
+.leaderboard__profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  overflow: hidden;
+  border-radius: 20rpx;
+  box-shadow: 0 10rpx 14rpx -2rpx rgba(51, 51, 51, 0.23);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.7, 0.98, 0.86, 0.98), box-shadow 0.25s cubic-bezier(0.7, 0.98, 0.86, 0.98);
+  background-color: #fff;
+}
+
+.leaderboard__profile:hover {
+  transform: scale(1.2);
+  box-shadow: 0 18rpx 94rpx 22rpx rgba(51, 51, 51, 0.18);
+}
+
+.leaderboard__name {
+  color: #979cb0;
+  font-weight: 600;
+  font-size: 40rpx;
+  letter-spacing: 1.28rpx;
+  margin-left: 24rpx;
+}
+
+.leaderboard__value {
+  color: #35d8ac;
+  font-weight: 700;
+  font-size:  65rpx;
+  text-align: center;
+  width: 40rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right:60rpx;
+}
+
+body {
+  margin: 0;
+  background-color: #eaeaea;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: 'Source Sans Pro', sans-serif;
+}
