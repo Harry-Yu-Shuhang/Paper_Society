@@ -5,30 +5,40 @@ import (
 	"paper_community/dao"
 	"paper_community/models"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 type GirlRankController struct{}
 
-var photoStep = 10 // 每次返回的数据条数
+var photoStep = 30 // 每次返回的数据条数
 
 // GetGirlsHotRank handles GET requests for the hot rank
 func (g GirlRankController) GetGirlsHotRank(c *gin.Context) {
+	// 检查是否有 ids 参数，若有则调用 GetGirlsByIds
+	if ids := c.QueryArray("ids"); len(ids) > 0 {
+		g.GetGirlsByIds(c)
+		return
+	}
 	g.fetchRankByType(c, "hot")
 }
 
 // GetGirlsScoreRank handles GET requests for the score rank
 func (g GirlRankController) GetGirlsScoreRank(c *gin.Context) {
+	// 检查是否有 ids 参数，若有则调用 GetGirlsByIds
+	if ids := c.QueryArray("ids"); len(ids) > 0 {
+		g.GetGirlsByIds(c)
+		return
+	}
 	g.fetchRankByType(c, "average_rate")
 }
 
-// Helper function to fetch rank by type
 func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 	offset, _ := strconv.Atoi(c.Query("offset"))
 
-	var totalCount int64
-	dao.Db.Model(&models.Girl{}).Count(&totalCount)
+	// 判断是否是首次加载或刷新
+	isInitialLoad := offset == 0
 
 	var girls []models.Girl
 	if err := dao.Db.Order(orderField + " DESC").
@@ -39,8 +49,22 @@ func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 		return
 	}
 
+	// 获取所有ID列表（用于首次加载或刷新时的缓存）
+	var idList []int
+	if isInitialLoad {
+		var allGirls []models.Girl
+		dao.Db.Select("id").Order(orderField + " DESC").Find(&allGirls)
+		for _, girl := range allGirls {
+			idList = append(idList, girl.ID)
+		}
+	}
+
+	// 是否还有更多数据
+	var totalCount int64
+	dao.Db.Model(&models.Girl{}).Count(&totalCount)
 	hasMoreData := int64(offset+len(girls)) < totalCount
 
+	// 返回排名数据
 	rankedGirls := make([]models.GirlRank, len(girls))
 	for i, girl := range girls {
 		rankedGirls[i] = models.GirlRank{
@@ -51,6 +75,54 @@ func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 		}
 	}
 
+	// 返回排名数据
+	//fmt.Printf("Ranked Girls in fetchRankByType: %+v\n", rankedGirls)
+
+	// 返回数据
+	response := gin.H{
+		"data":        rankedGirls,
+		"hasMoreData": hasMoreData,
+	}
+	if isInitialLoad {
+		response["idList"] = idList // 仅在首次加载或刷新时返回 ID 列表
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+func (g GirlRankController) GetGirlsByIds(c *gin.Context) {
+	idsStr := c.Query("ids")
+	offset, _ := strconv.Atoi(c.Query("offset")) // 获取前端传递的 offset
+	//fmt.Printf("Received idsStr: %v, offset: %v\n", idsStr, offset)
+
+	var ids []int
+	for _, idStr := range strings.Split(idsStr, ",") {
+		id, err := strconv.Atoi(idStr)
+		if err == nil {
+			ids = append(ids, id)
+		}
+	}
+	//fmt.Printf("Converted ids: %v\n", ids)
+
+	var girls []models.Girl
+	if err := dao.Db.Where("id IN ?", ids).Find(&girls).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data by IDs"})
+		return
+	}
+
+	// 按照 offset 更新 HotRank
+	rankedGirls := make([]models.GirlRank, len(girls))
+	for i, girl := range girls {
+		rankedGirls[i] = models.GirlRank{
+			ID:        girl.ID,
+			AvatarSrc: girl.AvatarSrc,
+			Name:      girl.Name,
+			HotRank:   offset + i + 1, // 使用 offset 确保连续排序
+		}
+	}
+
+	//fmt.Printf("Ranked Girls in GetGirlsByIds: %+v\n", rankedGirls)
+
+	hasMoreData := len(rankedGirls) >= len(ids)
 	c.JSON(http.StatusOK, gin.H{
 		"data":        rankedGirls,
 		"hasMoreData": hasMoreData,

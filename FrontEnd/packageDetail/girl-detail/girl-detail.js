@@ -16,8 +16,8 @@ function initChart(canvas, width, height, dpr) {
     devicePixelRatio: dpr // 像素比
   });
   canvas.setChart(chart);
-
-  // 使用全局变量 detailDataGlobal
+  // 从缓存中读取 detailData
+  const detailData = wx.getStorageSync('detailData');
   // 渐变色配置
   var gradientColors = [
     { offset: 0, color: '#00f' },    // 蓝色 (冷色)
@@ -26,7 +26,7 @@ function initChart(canvas, width, height, dpr) {
   // 优化后的配置项
   var option = {
     title: {
-      text: '平均分: '+detailDataGlobal.AverageRate,
+      text: '平均分: ' + (detailData ? detailData.AverageRate : ''),
       left: 'center',          // 标题居中
       textStyle: {
         fontSize: 16,          // 标题字体大小
@@ -115,7 +115,7 @@ function initChart(canvas, width, height, dpr) {
           fontSize: 12,           // 字体大小
           color: '#333'           // 字体颜色
         },
-        data: detailDataGlobal.RateNum  // 数据
+        data: detailData ? detailData.RateNum : [] // 数据
       }
     ]
   };
@@ -130,6 +130,8 @@ function initPieChart(canvas, width, height, dpr) {
     devicePixelRatio: dpr
   });
   canvas.setChart(chart);
+  // 从缓存中读取 detailData
+  const detailData = wx.getStorageSync('detailData');
 
   // 饼图配置
   var option = {
@@ -185,8 +187,8 @@ function initPieChart(canvas, width, height, dpr) {
           show: false             // 不显示指引线
         },
         data: [
-          { value: detailDataGlobal.CardNum, name: '签到卡' },   // 数据1：签到卡
-          { value: detailDataGlobal.LikeNum, name: '收藏' }      // 数据2：收藏
+          { value: detailData ? detailData.CardNum : 0, name: '签到卡' },
+          { value: detailData ? detailData.LikeNum : 0, name: '收藏' }     // 数据2：收藏
         ],
         itemStyle: {
           color: function (params) {
@@ -302,28 +304,40 @@ Page({
     const gid = Number(options.gid);
     const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
     const userId = userInfo ? userInfo.userID : null; // 获取 userID
+  
     if (!isNaN(gid)) {
       this.setData({
         gid: gid // 将 gid 设置到 data 中
       });
+      
+      // 检查缓存是否有匹配的 detailData
+      const cachedDetailData = wx.getStorageSync('detailData');
+  
+      if (cachedDetailData && cachedDetailData.ID === gid) {
+        // 如果缓存中存在且ID匹配，直接使用缓存数据
+        this.setData({
+          detailData: cachedDetailData,
+          RateNum: cachedDetailData.RateNum.reduce((acc, curr) => acc + curr, 0)
+        });
+      } else {
+        // 如果缓存不存在或ID不匹配，发起请求并存入缓存
+        fetchGirlDetail(gid, userId).then((res) => {
+          if (res && res.data) {
+            this.setData({
+              detailData: res.data,
+              RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)
+            });
+            // 将新获取的数据存入缓存
+            wx.setStorageSync('detailData', res.data);
+          }
+        }).catch((error) => {
+          console.error('获取角色详情失败:', error);
+        });
+      }
     } else {
       console.error("gid 未定义或无效:", options.gid);
     }
-    
-    // 调用 fetchGirlDetail 并传递 userId
-    fetchGirlDetail(gid, userId).then((res) => {
-      console.log("后端发送来的数据是:", res.data);
-      if (res && res.data) {
-        this.setData({
-          detailData: res.data,
-          RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)
-        });
-        detailDataGlobal = this.data.detailData; // 存储到全局变量
-      }
-    }).catch((error) => {
-      console.error('获取角色详情失败:', error);
-    });
-
+  
     if (userInfo && userInfo.avatarUrl) {
       this.setData({
         avatarUrl: userInfo.avatarUrl,

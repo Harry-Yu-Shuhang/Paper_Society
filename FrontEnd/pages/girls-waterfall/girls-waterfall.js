@@ -109,7 +109,7 @@ Page({
     }
   },
   
-  async renderPage(picList) {
+  async renderPage(picList, isFirst=false) {
     const { columns } = this.data;
     const columnsHeight = columns.map(col => col.reduce((sum, pic) => sum + pic.height, 0));
 
@@ -122,10 +122,12 @@ Page({
 
     this.setData({ columns });
     this.setData({isLoading:false});
-    this.setData({isSuccess:true});
-    setTimeout(() => {
-      this.setData({isSuccess:false});
-    }, 600);
+    if(!isFirst){
+      this.setData({isSuccess:true});
+      setTimeout(() => {
+        this.setData({isSuccess:false});
+      }, 600);
+    }
   },
 
   async searchData(keyword) {
@@ -184,7 +186,13 @@ Page({
   },
 
   onLoad() {
-    this.loadData();
+    // 检查缓存中是否有初始数据
+    const initialData = wx.getStorageSync('initialGirlsData');
+    if (initialData && initialData.length) {
+      this.renderPage(initialData, true);
+    } else {
+      this.loadData(); // 如果没有缓存数据则执行正常加载流程
+    }
   },
 
   // 触底时触发请求下一组数据

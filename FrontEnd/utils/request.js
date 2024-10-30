@@ -48,6 +48,14 @@ async function fetchScoreRankList(offset) {
   return sendRequest(`${girls_rank_score}?offset=${offset}`, 'GET');
 }
 
+async function fetchHotRankListByIds(ids, offset) {
+  return sendRequest(`${girls_rank_hot}?ids=${ids.join(',')}&offset=${offset}`, 'GET'); // 添加 offset
+}
+
+async function fetchScoreRankListByIds(ids, offset) {
+  return sendRequest(`${girls_rank_score}?ids=${ids.join(',')}&offset=${offset}`, 'GET'); // 添加 offset
+}
+
 // 获取首页数据
 function fetchWaterFallList(params = {}) {
   return sendRequest(girls_profile_waterfall, 'POST', params);
@@ -79,4 +87,6 @@ export {
   fetchSearchList,
   fetchGirlDetail,
   updateCardRecord,
+  fetchHotRankListByIds,
+  fetchScoreRankListByIds,
 };
