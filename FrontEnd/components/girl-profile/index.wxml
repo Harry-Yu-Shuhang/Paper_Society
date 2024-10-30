@@ -1,23 +1,23 @@
 <view class="container">
   <view class="girl-data">
     <view class="girl-class">
-      <text class="girl-name">{{girlInfo.name}}</text>
-      <van-tag type="primary" size="small" color="#f08080" class="girl-tag">{{girlInfo.age}}</van-tag>
+      <text class="girl-name">{{girlInfo.Name}}</text>
+      <van-tag type="primary" size="small" color="#f08080" class="girl-tag">{{girlInfo.Age}}</van-tag>
     </view>
   
     <view class="girl-popularity">
       <view class="popularity-data">
         <van-icon name="fire" color="#FF7F50" class="title-icon"/>
-        <text class="title-num">{{girlInfo.hot}}</text>
-        <text class="title-rank">No. {{girlInfo.hotRank}}</text>
+        <text class="title-num">{{girlInfo.Hot}}</text>
+        <text class="title-rank">No. {{girlInfo.HotRank}}</text>
       </view>
       <view class="popularity-data">
         <van-icon name="star" color="#0288D1" class="title-icon"/>
-        <text class="title-num">{{girlInfo.rate}}</text>
-        <text class="title-rank">No. {{girlInfo.rateRank}}</text>
+        <text class="title-num">{{girlInfo.AverageRate}}</text>
+        <text class="title-rank">No. {{girlInfo.RateRank}}</text>
       </view>
     </view>
     <text class="introduction-title">简介</text>
-    <text class="introduction-content">{{girlInfo.introduction}}</text>
+    <text class="introduction-content">{{girlInfo.Introduction}}</text>
   </view>
 </view>

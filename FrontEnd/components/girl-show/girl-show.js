@@ -21,7 +21,7 @@ Component({
    */
   methods: {
     onTapGirl(event){
-      const gid = this.properties.girls.girl_id
+      const gid = this.properties.girls.id
       this.triggerEvent('profileTap',{
         gid
       })

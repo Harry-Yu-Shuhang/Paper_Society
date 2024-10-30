@@ -1,7 +1,7 @@
 <van-toast id="van-toast" />
 <scroll-view enable-flex scroll-y class="container">
-  <image src="{{detailData.backgroundSrc}}" class="background-img"/>
-  <image src="{{detailData.girlSrc}}" class="girl-image" mode="aspectFill"/>
+  <image src="{{detailData.BackgroundSrc}}" class="background-img"/>
+  <image src="{{detailData.GirlSrc}}" class="girl-image" mode="aspectFill"/>
   <girl-profile girlProfile="{{detailData}}" 
   class="girl-profile"/>
   <view class="horizon-line"></view>
@@ -10,13 +10,13 @@
     <view class="fire-star">
       <van-icon name="fire" color="#FF7F50" class="title-icon"/>
       <text class="fire-star-text">人气超越</text>
-      <text class="fire-star-num">{{detailData.firePercent}}%</text>
+      <text class="fire-star-num">{{detailData.FirePercent}}%</text>
       <text class="fire-star-text">的角色</text>
     </view>
     <view class="fire-star">
       <van-icon name="star" color="#0288D1" class="title-icon"/>
       <text class="fire-star-text">评分超越</text>
-      <text class="fire-star-num">{{detailData.starPercent}}%</text>
+      <text class="fire-star-num">{{detailData.StarPercent}}%</text>
       <text class="fire-star-text">的角色</text>
     </view>
   </view>
@@ -28,11 +28,11 @@
   </view>
   <view class="horizon-line"></view>
   <view class="da-call">
-    <image src="{{detailData.avatarSrc}}" class="girl-avatar" mode="aspectFill"/>
+    <image src="{{detailData.AvatarSrc}}" class="girl-avatar" mode="aspectFill"/>
     <view class="dacall-ways">
       <view class="dacall-text">
         <text>为</text>
-        <text class="dacall-name">{{detailData.name}}</text>
+        <text class="dacall-name">{{detailData.Name}}</text>
         <text>打call</text>
       </view>
       <view class="give-gift">
@@ -46,14 +46,14 @@
           />
           <view class="card-text">
             <text class="gift-text">签到卡</text>
-            <text class="gift-num">{{detailData.cardNum}}</text>
+            <text class="gift-num">{{detailData.CardNum}}</text>
           </view>
         </view>
         <view class="give-like">
           <van-icon name="like" bind:tap="onLikeIconTap" color="{{ detailData.liked ? '#E74C3C' : '#a9a9a9' }}" size="25" class="like-icon"/>
           <view class="like-text">
             <text class="gift-text">收藏</text>
-            <text class="gift-num">{{detailData.likeNum}}</text>
+            <text class="gift-num">{{detailData.LikeNum}}</text>
           </view>
         </view>
       </view>
@@ -75,9 +75,9 @@
       </view>
       <view>
         <text class="role_rate_text">角色评分</text>
-        <van-rate value="{{detailData.averageRate}}" allow-half disabled-color="#0288D1" disabled class="rate_bar" size="11"/>
-        <text class="role_rate_text">{{detailData.averageRate}}</text>
-        <text class="rate_num">({{rateNum}})</text>
+        <van-rate value="{{detailData.AverageRate}}" allow-half disabled-color="#0288D1" disabled class="rate_bar" size="11"/>
+        <text class="role_rate_text">{{detailData.AverageRate}}</text>
+        <text class="rate_num">({{RateNum}})</text>
       </view>
     </view>
   </view>

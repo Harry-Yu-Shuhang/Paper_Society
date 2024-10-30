@@ -23,10 +23,11 @@ func Router() *gin.Engine {
 
 	girls := r.Group("/girls")
 	{
-		girls.GET("/rank/hot", controllers.GirlRankController{}.GetGirlsHotRank)
-		girls.GET("/rank/score", controllers.GirlRankController{}.GetGirlsScoreRank)
 		girls.POST("/profile/waterfall", controllers.GirlWaterFallController{}.PostRandomGirls)
 		girls.GET("/profile/search", controllers.GirlWaterFallController{}.GetSearchGirls)
+		girls.GET("/rank/hot", controllers.GirlRankController{}.GetGirlsHotRank)
+		girls.GET("/rank/score", controllers.GirlRankController{}.GetGirlsScoreRank)
+		girls.GET("/getGirlDetail", controllers.GirlProfileController{}.GetGirlDetail)
 	}
 
 	return r

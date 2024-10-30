@@ -13,14 +13,6 @@ import (
 
 type GirlWaterFallController struct{}
 
-// GirlProfile 包含前端需要的女孩信息
-type GirlProfile struct {
-	ID      int    `json:"id"`
-	GirlSrc string `json:"girlSrc"`
-	Name    string `json:"name"`
-	Views   int    `json:"views"`
-}
-
 type RenderedIDsRequest struct {
 	RenderedIds []int `json:"renderedIds"`
 }
@@ -44,8 +36,8 @@ func (g GirlWaterFallController) PostRandomGirls(c *gin.Context) {
 		query = query.Where("id NOT IN (?)", request.RenderedIds)
 	}
 
-	// 查询数据库
-	if err := query.Find(&girls).Error; err != nil {
+	// 查询数据库并限制结果为8个 8要和前端一致哦
+	if err := query.Limit(10).Find(&girls).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
 		return
 	}
@@ -55,9 +47,10 @@ func (g GirlWaterFallController) PostRandomGirls(c *gin.Context) {
 	r.Shuffle(len(girls), func(i, j int) { girls[i], girls[j] = girls[j], girls[i] })
 
 	// 转换为 GirlProfile 格式
-	selectedGirls := make([]GirlProfile, len(girls))
+	// selectedGirls := make([]GirlProfile, len(girls))
+	selectedGirls := make([]models.GirlWaterfall, len(girls))
 	for i, girl := range girls {
-		selectedGirls[i] = GirlProfile{
+		selectedGirls[i] = models.GirlWaterfall{
 			ID:      girl.ID,
 			GirlSrc: girl.GirlSrc,
 			Name:    girl.Name,
@@ -89,9 +82,9 @@ func (g GirlWaterFallController) GetSearchGirls(c *gin.Context) {
 	}
 
 	// 将结果转换为 GirlProfile 格式
-	searchResults := make([]GirlProfile, len(girls))
+	searchResults := make([]models.GirlWaterfall, len(girls))
 	for i, girl := range girls {
-		searchResults[i] = GirlProfile{
+		searchResults[i] = models.GirlWaterfall{
 			ID:      girl.ID,
 			GirlSrc: girl.GirlSrc,
 			Name:    girl.Name,

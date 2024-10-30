@@ -8,5 +8,6 @@
     "success-window":"/components/success-window/index"
   },
   "initialRenderingCache": "dynamic",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 0
 }

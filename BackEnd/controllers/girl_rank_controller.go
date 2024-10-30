@@ -4,70 +4,63 @@ import (
 	"net/http"
 	"paper_community/dao"
 	"paper_community/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type GirlRankController struct{}
 
+var photoStep = 10 // 每次返回的数据条数
+
 // GirlRank 包含返回给前端的数据结构（不包含 hot 和 AverageRate 字段，包含 HotRank 字段）
-type GirlRank struct {
-	ID        int    `json:"id"`
-	AvatarSrc string `json:"avatarSrc"`
-	Name      string `json:"name"`
-	HotRank   int    `json:"hotRank"` // 排名
+// type GirlRank struct {
+// 	ID        int    `json:"id"`
+// 	AvatarSrc string `json:"avatarSrc"`
+// 	Name      string `json:"name"`
+// 	HotRank   int    `json:"hotRank"` // 排名
+// }
+
+// GetGirlsHotRank handles GET requests for the hot rank
+func (g GirlRankController) GetGirlsHotRank(c *gin.Context) {
+	g.fetchRankByType(c, "hot")
 }
 
-// SortAndRankGirls 通用排序和排名函数，根据指定字段降序排序，并生成排名
-func SortAndRankGirls(field string) ([]GirlRank, error) {
-	var girls []models.Girl
+// GetGirlsScoreRank handles GET requests for the score rank
+func (g GirlRankController) GetGirlsScoreRank(c *gin.Context) {
+	g.fetchRankByType(c, "average_rate")
+}
 
-	// 按指定字段降序排序并获取数据
-	if err := dao.Db.Order(field + " DESC").Find(&girls).Error; err != nil {
-		return nil, err
+// Helper function to fetch rank by type
+func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
+	offset, _ := strconv.Atoi(c.Query("offset"))
+
+	var totalCount int64
+	dao.Db.Model(&models.Girl{}).Count(&totalCount)
+
+	var girls []models.Girl
+	if err := dao.Db.Order(orderField + " DESC").
+		Limit(photoStep).
+		Offset(offset).
+		Find(&girls).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
+		return
 	}
 
-	// 构建包含排名信息的结果切片
-	rankedGirls := make([]GirlRank, len(girls))
+	hasMoreData := int64(offset+len(girls)) < totalCount
+
+	rankedGirls := make([]models.GirlRank, len(girls))
 	for i, girl := range girls {
-		rankedGirls[i] = GirlRank{
+		rankedGirls[i] = models.GirlRank{
 			ID:        girl.ID,
 			AvatarSrc: girl.AvatarSrc,
 			Name:      girl.Name,
-			HotRank:   i + 1, // 设置排名，从 1 开始
+			HotRank:   offset + i + 1,
 		}
 	}
-	return rankedGirls, nil
-}
 
-// GetGirlsHotRank 按照 hot 字段降序排序并返回排名
-func (g GirlRankController) GetGirlsHotRank(c *gin.Context) {
-	// 使用通用排序和排名函数
-	rankedGirls, err := SortAndRankGirls("hot")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
-		return
-	}
-
-	// 返回结果
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Girls data fetched successfully by hot rank",
-		"data":    rankedGirls,
-	})
-}
-
-// GetGirlsScoreRank 按照 AverageRate 字段降序排序并返回排名
-func (g GirlRankController) GetGirlsScoreRank(c *gin.Context) {
-	// 使用通用排序和排名函数
-	rankedGirls, err := SortAndRankGirls("average_rate")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
-		return
-	}
-
-	// 返回结果
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Girls data fetched successfully by score rank",
-		"data":    rankedGirls,
+		"data":        rankedGirls,
+		"hasMoreData": hasMoreData,
 	})
 }

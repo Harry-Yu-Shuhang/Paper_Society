@@ -1,49 +1,94 @@
 import { fetchHotRankList, fetchScoreRankList } from '../../utils/request';
-
-const photo_step = 10;
+let rankType = 'hotRank';
 
 Page({
   data: {
-    loading: true,           // 初始为加载中
-    fetchRankList: [],       // 当前排行榜数据
-    activeTab: 'hotRank',    // 当前激活的标签，用于切换
+    loading: true,
+    fetchRankList: [],
+    activeTab: 'hotRank',
+    currentCount: 0,
+    hasMoreData: true,
+    isFail:false,
+    failReason:'信号飞到三次元了',
+    isSuccess:false,
   },
 
-  // 获取排行榜数据
-  async getRankList(rankType) {
-    this.setData({ loading: true }); // 设置加载状态为 true
-
+  // 修改 fetchRankData 函数
+  async fetchRankData(rankType, offset = 0, isRefresh = false) {
     try {
-      const fetchRank = rankType === 'hotRank' ? fetchHotRankList : fetchScoreRankList;
-      const response = await fetchRank();
-      const rankList = response.data.slice(0, photo_step); // 获取前10条数据
+      if (isRefresh) {
+        this.setData({ 
+          loading: true,
+          hasMoreData: true,
+        });
+      }
+
+      // 根据 rankType 调用对应的函数
+      const response = rankType === 'hotRank' ? 
+        await fetchHotRankList(offset) : await fetchScoreRankList(offset);
+      
+      const { data: newRankList, hasMoreData } = response;
+
       this.setData({
-        fetchRankList: rankList,
-        loading: false
+        fetchRankList: offset === 0 ? newRankList : [...this.data.fetchRankList, ...newRankList],
+        currentCount: offset + newRankList.length,
+        loading: false,
+        hasMoreData,
       });
+
+      if (isRefresh) {
+        this.setData({ isSuccess: true });
+        setTimeout(() => {
+          this.setData({ isSuccess: false });
+        }, 500);
+      }
     } catch (error) {
       console.error('获取排行榜数据失败:', error);
       this.setData({ loading: false });
+      
+      // 加载失败，则不清空数据
+      this.setData({ isFail: true });
+      setTimeout(() => {
+        this.setData({ isFail: false });
+      }, 800);
+    }
+  },
+  
+  onClick(event) {
+    rankType = event.detail.name;
+    this.setData({ activeTab: rankType, currentCount: 0, fetchRankList: [], isRefresh:true });
+    this.fetchRankData(rankType);
+  },
+
+  onRankTap(event) {
+    const id = event.currentTarget.dataset.id; // 获取点击的项的 id
+    wx.navigateTo({
+      url: '/packageDetail/girl-detail/girl-detail?gid=' + id,
+    });
+  },
+
+  onLoad() {
+    this.fetchRankData(rankType);
+  },
+
+  onReachBottom() {
+    if (this.data.hasMoreData) {
+      this.fetchRankData(this.data.activeTab, this.data.currentCount);
+    }else{
+      this.setData({
+        isFail: true,  
+        failReason:"没有更多数据喵!",
+      });
+      setTimeout(() => {
+        this.setData({
+          isFail: false, 
+        });
+      }, 600);
     }
   },
 
-  // Tab 切换时触发
-  onClick(event) {
-    const rankType = event.detail.name; // 获取点击的 tab 的 name 属性
-    this.setData({ activeTab: rankType }); // 更新当前激活的 tab
-    this.getRankList(rankType);            // 请求对应的排行榜数据
-  },
-
-  // 页面加载时获取默认的排行榜数据
-  onLoad() {
-    this.getRankList('hotRank'); // 默认加载人气榜数据
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
   onPullDownRefresh() {
-    this.getRankList(this.data.activeTab); // 下拉刷新时重新获取当前的排行榜数据
-    wx.stopPullDownRefresh();              // 停止下拉刷新动画
+    this.fetchRankData(this.data.activeTab, 0, true);
+    wx.stopPullDownRefresh();
   },
 });

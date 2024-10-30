@@ -12,16 +12,16 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/rank/rank",
-          "pathName": "pages/rank/rank",
-          "query": "",
+          "name": "packageDetail/girl-detail/girl-detail",
+          "pathName": "packageDetail/girl-detail/girl-detail",
+          "query": "gid=2",
           "launchMode": "default",
           "scene": null
         },
         {
-          "name": "packageDetail/girl-detail/girl-detail",
-          "pathName": "packageDetail/girl-detail/girl-detail",
-          "query": "gid=0",
+          "name": "pages/rank/rank",
+          "pathName": "pages/rank/rank",
+          "query": "",
           "launchMode": "default",
           "scene": null
         },

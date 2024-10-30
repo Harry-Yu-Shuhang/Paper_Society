@@ -1,8 +1,10 @@
-import {detailList} from "../../data/profiles"
+//import {detailList} from "../../data/profiles"
 
 import * as echarts from '../../components/ec-canvas/echarts';
 
 import Toast from '@vant/weapp/toast/toast';
+
+import {fetchGirlDetail} from '../../utils/request';
 
 let chart = null;
 let detailDataGlobal = null; // 定义全局变量来存储 detailData
@@ -24,7 +26,7 @@ function initChart(canvas, width, height, dpr) {
   // 优化后的配置项
   var option = {
     title: {
-      text: '平均分: '+detailDataGlobal.averageRate,
+      text: '平均分: '+detailDataGlobal.AverageRate,
       left: 'center',          // 标题居中
       textStyle: {
         fontSize: 16,          // 标题字体大小
@@ -113,7 +115,7 @@ function initChart(canvas, width, height, dpr) {
           fontSize: 12,           // 字体大小
           color: '#333'           // 字体颜色
         },
-        data: detailDataGlobal.rateNum  // 数据
+        data: detailDataGlobal.RateNum  // 数据
       }
     ]
   };
@@ -170,7 +172,7 @@ function initPieChart(canvas, width, height, dpr) {
             fontWeight: 'bold',
             // 修改formatter，显示数值和百分比两行
             formatter: function (params) {
-              return `${params.value} \n ${params.percent}%`; // 第一行显示名称，第二行显示值和百分比
+              return `${params.percent}%`; //显示和百分比
             }
           },
           itemStyle: {
@@ -183,8 +185,8 @@ function initPieChart(canvas, width, height, dpr) {
           show: false             // 不显示指引线
         },
         data: [
-          { value: detailDataGlobal.cardNum, name: '签到卡' },   // 数据1：签到卡
-          { value: detailDataGlobal.likeNum, name: '收藏' }      // 数据2：收藏
+          { value: detailDataGlobal.CardNum, name: '签到卡' },   // 数据1：签到卡
+          { value: detailDataGlobal.LikeNum, name: '收藏' }      // 数据2：收藏
         ],
         itemStyle: {
           color: function (params) {
@@ -210,7 +212,7 @@ Page({
   data: {
     gid:null, //存储女孩的girl_id
     detailData:{},
-    rateNum:null,//存储评论总人数
+    RateNum:null,//存储评论总人数
     ec: {
       onInit: initChart
     },
@@ -238,11 +240,6 @@ Page({
         message:'今天送过啦',
         duration:1500
       });
-      // wx.showToast({
-      //   title: '今天给她送过签到卡啦！',
-      //   icon: 'none',
-      //   duration: 2000
-      // });
     } else {
       // 如果没有送过签到卡，点击后变成已送状态
       Toast.success({
@@ -286,27 +283,24 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad(options) {
-    const gid = Number(options.gid)
-    // 使用 find 方法查找 girl_id 为 gid 的元素
-    const detailData = detailList.find(function(detail) {
-      return detail.girl_id === gid;
-    });
-    this.setData({
-      gid,
-      detailData,
-      myRate: detailData.myRate || 0  // 如果 detailData.myRate 为空或未定义，默认值为 0
-    })
-    detailDataGlobal = detailData;  // 将 detailData 存入全局变量
-    // 使用 reduce() 方法求和
-    const rateNum = detailDataGlobal.rateNum.reduce((accumulator, currentValue) => {
-      return accumulator + currentValue;
-    }, 0);  // 初始值设为 0
-    this.setData({
-      rateNum
-    })
 
-    // 获取头像数据
+  onLoad(options) {
+    const gid = Number(options.gid);
+    
+    fetchGirlDetail(gid).then((res) => {
+      console.log("后端发送来的数据是:",res.data);
+      if (res && res.data) {
+        this.setData({
+          detailData: res.data,
+          RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)//暂时注释掉
+        });
+        // 将 detailData 存入全局变量 detailDataGlobal
+        detailDataGlobal = this.data.detailData;
+      }
+    }).catch((error) => {
+      console.error('获取角色详情失败:', error);
+    });
+    // 获取用户头像数据
     const userInfo = wx.getStorageSync('userInfo'); // 假设缓存数据键为 userInfo
     if (userInfo && userInfo.avatarUrl) {
       this.setData({

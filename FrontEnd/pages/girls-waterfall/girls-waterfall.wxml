@@ -1,9 +1,7 @@
 <!-- 加载动画组件，显示在scroll-view顶部 -->
 <loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
-
 <!-- 加载成功组件 -->
 <success-window wx:if="{{isSuccess}}" />
-
 <!-- 加载失败组件 -->
 <fail-window wx:if="{{isFail}}" text="{{failReason}}" />
 
@@ -17,6 +15,7 @@
     bind:cancel="onCancel"
     bind:clear="onClear"
     show-action
+    background="#F2F4F"
   />
 
   <!-- 全部数据的瀑布流渲染,在没有搜索结果的时候显示 -->
@@ -34,7 +33,7 @@
   <view wx:else>
     <view class="main">
       <view wx:for="{{columns}}" class="column" wx:key="index">
-        <view wx:for="{{item}}" class="column_item" wx:key="girl_id">
+        <view wx:for="{{item}}" class="column_item" wx:key="id">
           <!-- 输出图片 -->
           <girl-show bind:profileTap="onGoToDetail" girls="{{item}}"></girl-show>
         </view>

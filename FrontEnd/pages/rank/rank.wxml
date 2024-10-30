@@ -1,3 +1,9 @@
+<!-- 加载动画组件 -->
+<loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
+<!-- 加载成功/失败组件 -->
+<success-window wx:if="{{isSuccess}}" />
+<fail-window wx:if="{{isFail}}" text="{{failReason}}" />
+
 <view class="leaderboard">
   <!-- Tabs 切换 -->
   <van-tabs active="{{ active }}" bind:click="onClick">
@@ -19,7 +25,7 @@
   <!-- 使用 recycle-view 渲染排行榜 -->
   <recycle-view wx:else class="leaderboard__profiles" bindscrolltolower="onScrollToLower" scroll-y="{{true}}" scroll-top="{{scrollTop}}">
     <recycle-item wx:for="{{fetchRankList}}" wx:key="id">
-      <view class="leaderboard__profile">
+      <view class="leaderboard__profile" bind:tap="onRankTap" data-id="{{item.id}}">
         <image src="{{item.avatarSrc}}" alt="{{item.name}}" class="leaderboard__picture" lazy-load></image>
         <text class="leaderboard__name">{{item.name}}</text>
         <text class="leaderboard__value">{{item.hotRank}}</text>
