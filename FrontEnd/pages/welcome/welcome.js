@@ -33,6 +33,7 @@ function requestPromise(url, method, data = {}) {
 Page({
   data: {
     userInfo: {
+      userID:null,
       avatarUrl: "",
       cardCount: 0,
       isNewUser: false,
@@ -117,9 +118,11 @@ Page({
       
       if (response && typeof response === 'object') {
         // 将后端返回的数据添加到 userInfo，并缓存
+        userInfo.userID = response.userID || null; // 获取后端返回的 userID
         userInfo.cardCount = response.cardCount || 0;
         userInfo.isNewUser = response.isNewUser || false;
         userInfo.isSameDay = response.isSameDay || false;
+        userInfo.cardCount = response.cardCount || null; // 获取后端返回的 cardCount
         wx.setStorageSync('userInfo', userInfo); // 更新缓存
   
         // 更新页面数据

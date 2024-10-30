@@ -39,7 +39,7 @@
         <view class="give-card">
           <van-icon 
           name="card"
-          color="{{ detailData.voted ? '#ffa2e1' : '#a9a9a9' }}"  
+          color="{{ detailData.Voted ? '#ffa2e1' : '#a9a9a9' }}"  
           size="28" 
           class="card-icon"
           bind:tap="onCardIconTap"

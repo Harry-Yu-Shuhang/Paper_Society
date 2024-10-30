@@ -6,6 +6,7 @@ import {
   girls_profile_waterfall,
   girls_profile_search,
   girls_detail_get,
+  check_card
 } from './common_data';
 
 // 通用请求函数，使用 async/await
@@ -58,8 +59,16 @@ function fetchSearchList(keyword) {
 }
 
 // 获取角色详情数据
-function fetchGirlDetail(gid) {
-  return sendRequest(girls_detail_get+`?gid=${gid}`, 'GET');
+function fetchGirlDetail(gid, userId) {
+  return sendRequest(`${girls_detail_get}?gid=${gid}&user_id=${userId}`, 'GET');
+}
+
+// 更新签到卡记录
+function updateCardRecord(userId, girlId) {
+  return sendRequest(check_card, 'POST', { 
+    user_id: Number(userId),
+    girl_id: Number(girlId)
+   });
 }
 
 export {
@@ -69,4 +78,5 @@ export {
   fetchWaterFallList,
   fetchSearchList,
   fetchGirlDetail,
+  updateCardRecord,
 };

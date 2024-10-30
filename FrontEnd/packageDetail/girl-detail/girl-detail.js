@@ -4,7 +4,7 @@ import * as echarts from '../../components/ec-canvas/echarts';
 
 import Toast from '@vant/weapp/toast/toast';
 
-import {fetchGirlDetail} from '../../utils/request';
+import {fetchGirlDetail, updateCardRecord} from '../../utils/request';
 
 let chart = null;
 let detailDataGlobal = null; // 定义全局变量来存储 detailData
@@ -232,29 +232,43 @@ Page({
     });
   },
 
-  // 点击签到卡图标的事件处理函数
-  onCardIconTap() {
-    if (this.data.detailData.voted) {
-      // 如果已经送过签到卡，提示
-      Toast.fail({
-        message:'今天送过啦',
-        duration:1500
-      });
-    } else {
-      // 如果没有送过签到卡，点击后变成已送状态
-      Toast.success({
-        message:'送签到卡成功',
-        duration:1500
-      });
+  async onCardIconTap() {
+    const gid = this.data.gid; // 获取女孩ID
+    const userInfo = wx.getStorageSync('userInfo'); // 先从缓存获取整个 userInfo 对象
+    const userId = userInfo ? userInfo.userID : null; // 提取其中的 userID
 
-      // 更新 detailData.voted 为 true
-      this.setData({
-        'detailData.voted': true
+    try {
+      // 发送 POST 请求更新签到卡记录
+      const response = await updateCardRecord(userId, gid);
+
+      if (response.alreadyGiven) {
+        // 如果今天已经送过签到卡
+        Toast.fail({
+          message: '今天送过啦',
+          duration: 1500
+        });
+      } else {
+        // 如果今天没有送过签到卡
+        Toast.success({
+          message: '送签到卡成功',
+          duration: 1500
+        });
+
+        // 更新 detailData.Voted 为 true
+        this.setData({
+          'detailData.Voted': true,
+          'detailData.CardNum': this.data.detailData.CardNum + 1,
+        });
+      }
+    } catch (error) {
+      console.error('签到卡请求失败:', error);
+      Toast.fail({
+        message: '签到卡请求失败，请重试',
+        duration: 1500
       });
     }
   },
-
-  // 点击收藏图标的事件处理函数
+  
   onLikeIconTap() {
     if (this.data.detailData.liked) {
       // 如果已经收藏过，提示
@@ -286,22 +300,30 @@ Page({
 
   onLoad(options) {
     const gid = Number(options.gid);
+    const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
+    const userId = userInfo ? userInfo.userID : null; // 获取 userID
+    if (!isNaN(gid)) {
+      this.setData({
+        gid: gid // 将 gid 设置到 data 中
+      });
+    } else {
+      console.error("gid 未定义或无效:", options.gid);
+    }
     
-    fetchGirlDetail(gid).then((res) => {
-      console.log("后端发送来的数据是:",res.data);
+    // 调用 fetchGirlDetail 并传递 userId
+    fetchGirlDetail(gid, userId).then((res) => {
+      console.log("后端发送来的数据是:", res.data);
       if (res && res.data) {
         this.setData({
           detailData: res.data,
-          RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)//暂时注释掉
+          RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)
         });
-        // 将 detailData 存入全局变量 detailDataGlobal
-        detailDataGlobal = this.data.detailData;
+        detailDataGlobal = this.data.detailData; // 存储到全局变量
       }
     }).catch((error) => {
       console.error('获取角色详情失败:', error);
     });
-    // 获取用户头像数据
-    const userInfo = wx.getStorageSync('userInfo'); // 假设缓存数据键为 userInfo
+
     if (userInfo && userInfo.avatarUrl) {
       this.setData({
         avatarUrl: userInfo.avatarUrl,

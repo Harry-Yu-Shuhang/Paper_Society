@@ -27,6 +27,8 @@ func (u UserController) UpdateUserInfo(c *gin.Context) {
 	// 检查是否为新用户
 	var existingUser models.UserInfo
 	isNewUser := dao.Db.Where("open_id = ?", userInfo.OpenID).First(&existingUser).Error == gorm.ErrRecordNotFound
+	var userID int    // 用于存储用户ID
+	var cardCount int // 用于存储返回给前端的 CardCount
 
 	isSameDayLogin := true
 	if isNewUser {
@@ -37,6 +39,8 @@ func (u UserController) UpdateUserInfo(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save new user info"})
 			return
 		}
+		userID = userInfo.ID           // 获取新用户的ID
+		cardCount = userInfo.CardCount // 获取新用户的CardCount
 
 	} else {
 		// 老用户，判断是否在同一天登录
@@ -54,14 +58,17 @@ func (u UserController) UpdateUserInfo(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user info"})
 			return
 		}
+		userID = existingUser.ID           // 获取老用户的ID
+		cardCount = existingUser.CardCount // 获取老用户的CardCount
 	}
 
-	// 返回用户信息，包括是否为今天首次登录
+	// 返回用户信息，包括是否为今天首次登录和 CardCount
 	c.JSON(http.StatusOK, gin.H{
 		"message":   "User info updated successfully",
 		"isSameDay": isSameDayLogin,
 		"isNewUser": isNewUser,
-		"cardCount": existingUser.CardCount,
+		"cardCount": cardCount,
+		"userID":    userID,
 	})
 }
 

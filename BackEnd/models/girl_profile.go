@@ -15,12 +15,17 @@ type GirlProfile struct {
 	RateRank      int64
 	FirePercent   int
 	StarPercent   int
-
-	CardNum int
-	LikeNum int
-	RateNum []int
+	CardNum       int
+	LikeNum       int
+	RateNum       []int
+	Voted         bool
 
 	MyRate int
-	Voted  bool
 	Liked  bool
+}
+
+type GiveCardRecord struct {
+	UserID  int
+	GirlID  int
+	GivenAt int64
 }
