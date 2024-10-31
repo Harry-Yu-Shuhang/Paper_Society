@@ -179,13 +179,6 @@ Page({
   },
 
   // 切换榜单
-  // onClick(event) {
-  //   rankType = event.detail.name;
-  //   this.setData({ activeTab: rankType, currentCount: 0, fetchRankList: [], isRefresh: true });
-  //   this.fetchRankData(rankType);
-  // },
-
-  // 切换榜单
   onClick(event) {
     rankType = event.detail.name;
     const cacheKey = rankType === 'hotRank' ? 'hotRankData' : 'scoreRankData';

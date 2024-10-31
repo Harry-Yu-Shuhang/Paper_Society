@@ -75,7 +75,7 @@
       </view>
       <view>
         <text class="role_rate_text">角色评分</text>
-        <van-rate value="{{detailData.AverageRate}}" allow-half disabled-color="#0288D1" disabled class="rate_bar" size="11"/>
+        <van-rate value="{{detailData.AverageRate}}" allow-half disabled-color="#0288D1" disabled class="rate_bar_blue" size="11"/>
         <text class="role_rate_text">{{detailData.AverageRate}}</text>
         <text class="rate_num">({{RateNum}})</text>
       </view>

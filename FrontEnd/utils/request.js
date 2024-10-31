@@ -79,6 +79,13 @@ function updateCardRecord(userId, girlId) {
    });
 }
 
+function updateInfos(userInfo) {
+  return sendRequest('/update-infos', 'POST', {
+    userInfo: userInfo, // 用户信息
+    // detailData: detailData // 详细数据
+  });
+}
+
 export {
   sendUserInfo,
   fetchHotRankList,
@@ -89,4 +96,5 @@ export {
   updateCardRecord,
   fetchHotRankListByIds,
   fetchScoreRankListByIds,
+  updateInfos,
 };

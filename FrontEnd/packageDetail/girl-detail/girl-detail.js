@@ -4,10 +4,7 @@ import * as echarts from '../../components/ec-canvas/echarts';
 
 import Toast from '@vant/weapp/toast/toast';
 
-import {fetchGirlDetail, updateCardRecord} from '../../utils/request';
-
-let chart = null;
-let detailDataGlobal = null; // 定义全局变量来存储 detailData
+import {fetchGirlDetail, updateCardRecord, updateInfos} from '../../utils/request';
 
 function initChart(canvas, width, height, dpr) {
   const chart = echarts.init(canvas, null, {
@@ -249,7 +246,14 @@ Page({
           message: '今天送过啦',
           duration: 1500
         });
-      } else {
+      } 
+      else if(userInfo.cardCount <= 0){
+        Toast.fail({
+          message: '没有签到卡了',
+          duration: 1500
+        });
+      }
+      else {
         // 如果今天没有送过签到卡
         Toast.success({
           message: '送签到卡成功',
@@ -261,6 +265,11 @@ Page({
           'detailData.Voted': true,
           'detailData.CardNum': this.data.detailData.CardNum + 1,
         });
+
+        // 更新缓存中的 userInfo.cardCount 并存入缓存
+        userInfo.cardCount -= 1;
+        wx.setStorageSync('userInfo', userInfo); // 更新缓存中的 userInfo
+        wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
       }
     } catch (error) {
       console.error('签到卡请求失败:', error);
@@ -369,8 +378,19 @@ Page({
   /**
    * 生命周期函数--监听页面卸载
    */
-  onUnload() {
-
+  async onUnload() {
+    const userInfo = wx.getStorageSync('userInfo'); // 读取缓存中的 userInfo
+    if (userInfo && userInfo.userID) {
+      try {
+        // 发送请求更新用户信息，包括 cardCount 和未来可能的其他字段
+        // await updateInfos(userInfo, this.data.detailData);
+        await updateInfos(userInfo);
+        wx.setStorageSync('userInfo', userInfo); // 更新缓存
+        wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
+      } catch (error) {
+        console.error('更新 cardCount 到后端失败:', error);
+      }
+    }
   },
 
   /**

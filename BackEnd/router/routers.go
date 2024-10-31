@@ -18,8 +18,9 @@ func Router() *gin.Engine {
 	// r.POST("/user/login", controllers.UserController{}.UpdateUserInfo)
 	user := r.Group("/user")
 	{
-		user.POST("/login", controllers.UserController{}.UpdateUserInfo)
+		user.POST("/login", controllers.UserController{}.CreateUserInfo)
 	}
+	r.POST("/update-infos", controllers.UpdateInfosController{}.InfosUpdate) // 新增路由
 
 	girls := r.Group("/girls")
 	{

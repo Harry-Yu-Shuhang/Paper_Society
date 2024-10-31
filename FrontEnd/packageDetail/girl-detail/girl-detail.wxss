@@ -209,6 +209,12 @@
   margin-bottom: 6rpx;
 }
 
+.rate_bar_blue{
+  margin-left: 5rpx;
+  margin-right: 5rpx;
+  margin-bottom: 6rpx;
+}
+
 .role_rate_text{
   color:#444;
   font-size:22rpx;

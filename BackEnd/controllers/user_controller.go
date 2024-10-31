@@ -14,7 +14,7 @@ import (
 
 type UserController struct{}
 
-func (u UserController) UpdateUserInfo(c *gin.Context) {
+func (u UserController) CreateUserInfo(c *gin.Context) {
 	var userInfo models.UserInfo
 	if err := utils.BindJSON(c, &userInfo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})

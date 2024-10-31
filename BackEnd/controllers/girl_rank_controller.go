@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"paper_community/dao"
 	"paper_community/models"
@@ -40,11 +41,17 @@ func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 	// 判断是否是首次加载或刷新
 	isInitialLoad := offset == 0
 
-	var girls []models.Girl
-	if err := dao.Db.Order(orderField + " DESC").
-		Limit(photoStep).
-		Offset(offset).
-		Find(&girls).Error; err != nil {
+	var rankedGirls []models.GirlRank
+
+	// 使用 RANK 来实现相同热度跳跃排名
+	query := `
+		SELECT id, avatar_src, name, hot, RANK() OVER (ORDER BY ` + orderField + ` DESC) AS hot_rank
+		FROM girls
+		ORDER BY ` + orderField + ` DESC
+		LIMIT ? OFFSET ?
+	`
+
+	if err := dao.Db.Raw(query, photoStep, offset).Scan(&rankedGirls).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
 		return
 	}
@@ -62,21 +69,10 @@ func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 	// 是否还有更多数据
 	var totalCount int64
 	dao.Db.Model(&models.Girl{}).Count(&totalCount)
-	hasMoreData := int64(offset+len(girls)) < totalCount
+	hasMoreData := int64(offset+len(rankedGirls)) < totalCount
 
-	// 返回排名数据
-	rankedGirls := make([]models.GirlRank, len(girls))
-	for i, girl := range girls {
-		rankedGirls[i] = models.GirlRank{
-			ID:        girl.ID,
-			AvatarSrc: girl.AvatarSrc,
-			Name:      girl.Name,
-			HotRank:   offset + i + 1,
-		}
-	}
-
-	// 返回排名数据
-	//fmt.Printf("Ranked Girls in fetchRankByType: %+v\n", rankedGirls)
+	// 调试输出 rankedGirls 数据
+	fmt.Printf("Ranked Girls with DENSE_RANK: %+v\n", rankedGirls)
 
 	// 返回数据
 	response := gin.H{

@@ -84,6 +84,32 @@ Page({
     }
   },
 
+  onShow() {
+    // 每次页面显示时更新 userInfo 缓存
+    if (this.data.userInfo.openid) {
+      this.updateUserInfoCache();
+    }
+  },
+
+  async updateUserInfoCache() {
+    const { userInfo } = this.data;
+    try {
+      const response = await sendUserInfo(userInfo); // 请求后端获取最新的 userInfo
+      if (response && typeof response === 'object') {
+        userInfo.userID = response.userID || userInfo.userID;
+        userInfo.cardCount = response.cardCount || userInfo.cardCount;
+        userInfo.isNewUser = response.isNewUser || userInfo.isNewUser;
+        userInfo.isSameDay = response.isSameDay || userInfo.isSameDay;
+        wx.setStorageSync('userInfo', userInfo); // 更新缓存
+        this.setData({ userInfo });
+      } else {
+        console.error("Invalid response structure:", response);
+      }
+    } catch (error) {
+      console.error("Failed to update userInfo:", error);
+    }
+  },
+
   getUserProfile(event) {
     if (this.data.hasUserInfo) {
       this.handleUserLogin();
@@ -136,10 +162,13 @@ Page({
     try {
       const response = await sendUserInfo(userInfo);
       if (response && typeof response === 'object') {
-        userInfo.userID = response.userID || null;
-        userInfo.cardCount = response.cardCount || 0;
-        userInfo.isNewUser = response.isNewUser || false;
-        userInfo.isSameDay = response.isSameDay || false;
+        // 更新 userInfo 对象的属性而不重新赋值整个对象(因为userInfo是const)
+        userInfo.userID = response.userID || userInfo.userID;
+        userInfo.cardCount = response.cardCount || userInfo.cardCount;
+        userInfo.isNewUser = response.isNewUser || userInfo.isNewUser;
+        userInfo.isSameDay = response.isSameDay || userInfo.isSameDay;
+        userInfo.nickName = response.nickName || userInfo.nickName;
+        userInfo.avatarUrl = response.avatarUrl || userInfo.avatarUrl;
         wx.setStorageSync('userInfo', userInfo);
         this.setData({ userInfo });
         

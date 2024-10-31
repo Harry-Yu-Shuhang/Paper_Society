@@ -26,26 +26,29 @@ func GetStatisticsByGirlID(girl models.Girl) (hotRank, rateRank, totalGirls int6
 	// 查询总人数
 	dao.Db.Table("girls").Count(&totalGirls)
 
-	// 查询 HotRank
-	err = dao.Db.Table("girls").
-		Select("COUNT(*) + 1 AS hotRank").
-		Where("hot > ?", girl.Hot).
-		Row().
-		Scan(&hotRank)
+	// 查询 HotRank 使用窗口函数 RANK() 排名
+	queryHotRank := `
+		SELECT hot_rank FROM (
+			SELECT id, RANK() OVER (ORDER BY hot DESC) AS hot_rank
+			FROM girls
+		) ranked_girls WHERE id = ?
+	`
+	err = dao.Db.Raw(queryHotRank, girl.ID).Scan(&hotRank).Error
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("HotRank 查询错误: %v", err)
 	}
 
-	// 查询 RateRank
-	err = dao.Db.Table("girls").
-		Select("COUNT(*) + 1 AS rateRank").
-		Where("average_rate > ?", girl.AverageRate).
-		Row().
-		Scan(&rateRank)
+	// 查询 RateRank 使用窗口函数 RANK() 排名
+	queryRateRank := `
+		SELECT rate_rank FROM (
+			SELECT id, RANK() OVER (ORDER BY average_rate DESC) AS rate_rank
+			FROM girls
+		) ranked_girls WHERE id = ?
+	`
+	err = dao.Db.Raw(queryRateRank, girl.ID).Scan(&rateRank).Error
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("RateRank 查询错误: %v", err)
 	}
-
 	return hotRank, rateRank, totalGirls, nil
 }
 
@@ -62,7 +65,7 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 	// 获取 gid 参数和 user_id 参数
 	gid := c.Query("gid")
 	userID := c.Query("user_id")
-	fmt.Printf("收到女孩详情请求: gid = %s, user_id = %s\n", gid, userID)
+	//fmt.Printf("收到女孩详情请求: gid = %s, user_id = %s\n", gid, userID)
 
 	// 使用 WaitGroup 处理并发查询
 	var wg sync.WaitGroup
@@ -123,8 +126,45 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 	}
 
 	// 计算百分比
-	firePercent := int(float64(totalGirls-hotRank) / float64(totalGirls) * 100)
-	starPercent := int(float64(totalGirls-rateRank) / float64(totalGirls) * 100)
+	// firePercent := int64(float64(totalGirls-hotRank) / float64(totalGirls) * 100)
+	// starPercent := int64(float64(totalGirls-rateRank) / float64(totalGirls) * 100)
+
+	// 定义 WaitGroup 处理并发查询
+	var lowerHotCount, lowerRateCount int64
+	var hotErr, rateErr error
+
+	// 并发查询比当前 hotRank 更低的排名数量
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		hotErr = dao.Db.Raw(`
+        SELECT COUNT(hot) 
+        FROM girls 
+        WHERE hot < ?`, girl.Hot).Scan(&lowerHotCount).Error
+	}()
+
+	// 并发查询比当前 rateRank 更低的排名数量
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		rateErr = dao.Db.Raw(`
+        SELECT COUNT(average_rate) 
+        FROM girls 
+        WHERE average_rate < ?`, girl.AverageRate).Scan(&lowerRateCount).Error
+	}()
+
+	// 等待所有查询完成
+	wg.Wait()
+
+	// 检查查询错误
+	if hotErr != nil || rateErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rank data"})
+		return
+	}
+
+	// 使用实际落后人数来计算百分比
+	firePercent := int64(float64(lowerHotCount) / float64(totalGirls) * 100)
+	starPercent := int64(float64(lowerRateCount) / float64(totalGirls) * 100)
 
 	// 构建返回的 GirlProfile 数据
 	girlProfile := models.GirlProfile{
@@ -152,6 +192,7 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 		"message": "Girl detail fetched successfully",
 		"data":    girlProfile,
 	})
+	fmt.Printf("返回给前端的女孩详情数据:\n %v\n%v\n", girlProfile.HotRank, girlProfile.RateRank)
 }
 
 // UpdateTodayCardStatus 更新今天的签到卡状态
@@ -198,9 +239,9 @@ func (g GirlProfileController) UpdateTodayCardStatus(c *gin.Context) {
 		// 如果已送过签到卡
 		c.JSON(http.StatusOK, gin.H{"alreadyGiven": true})
 	} else {
-		// 如果未送过签到卡，使用 goroutine 并发插入新记录和更新 card_num
+		// 如果未送过签到卡，使用 goroutine 并发插入新记录、更新 card_num 和 hot
 		var wg sync.WaitGroup
-		var insertErr, updateErr error
+		var insertErr, updateStatsErr, updateHotErr error
 
 		// 插入新记录
 		wg.Add(1)
@@ -214,16 +255,31 @@ func (g GirlProfileController) UpdateTodayCardStatus(c *gin.Context) {
 			insertErr = dao.Db.Create(&newRecord).Error
 		}()
 
-		// 更新 card_num 字段
+		// 更新 girl_statistics 表中的 card_num
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			updateErr = dao.Db.Table("girl_statistics").
+			statsUpdate := models.GirlStatisticsUpdate{
+				CardNum: 1, // 增加的数量，可以更改为其他值
+			}
+			updateStatsErr = dao.Db.Table("girl_statistics").
 				Where("girl_id = ?", girlID).
-				Update("card_num", gorm.Expr("card_num + ?", 1)).Error
+				Update("card_num", gorm.Expr("card_num + ?", statsUpdate.CardNum)).Error
 		}()
 
-		// 等待两个 goroutine 完成
+		// 更新 girls 表中的 hot
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			girlUpdate := models.GirlUpdate{
+				Hot: 1, // 增加的热度
+			}
+			updateHotErr = dao.Db.Table("girls").
+				Where("id = ?", girlID).
+				Update("hot", gorm.Expr("hot + ?", girlUpdate.Hot)).Error
+		}()
+
+		// 等待所有 goroutine 完成
 		wg.Wait()
 
 		// 检查错误
@@ -231,8 +287,12 @@ func (g GirlProfileController) UpdateTodayCardStatus(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card status"})
 			return
 		}
-		if updateErr != nil {
+		if updateStatsErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card count"})
+			return
+		}
+		if updateHotErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hot count"})
 			return
 		}
 
