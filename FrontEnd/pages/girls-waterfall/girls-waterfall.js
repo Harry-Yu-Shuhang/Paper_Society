@@ -33,7 +33,7 @@ Page({
     // 设置加载状态
     this.setData({ isLoading: showLoading });
   
-    // 设置 5 秒定时器，强制重置加载状态
+    // 设置 4 秒定时器，强制重置加载状态
     const loadingTimeout = setTimeout(() => {
       if (this.data.isLoading) {
         this.setData({ isLoading: false });
@@ -74,7 +74,6 @@ Page({
     this.setData({ isLoading: true });
     try {
       const res = await fetchWaterFallList({ renderedIds: this.data.renderedIds }); // 传递已渲染的ID列表
-
       // 检查返回的数据是否为空
       if (Array.isArray(res.data) && res.data.length === 0) {
         this.setData({ isLoading: false });
@@ -89,7 +88,6 @@ Page({
         setTimeout(() => {
           this.setData({ 
             isFail: false,
-            failReason:default_fail_reason,
            });
         }, 800);
         
@@ -100,7 +98,10 @@ Page({
       console.error("Error fetching new data from backend:", error);
       this.setData({ isLoading: false });
       setTimeout(() => {
-        this.setData({ isFail: true });
+        this.setData({ 
+          isFail: true,
+          failReason:default_fail_reason,
+         });
       }, 500);
       setTimeout(() => {
         this.setData({ isFail: false });

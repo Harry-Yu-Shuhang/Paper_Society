@@ -80,11 +80,36 @@ function updateCardRecord(userId, girlId) {
 }
 
 function updateInfos(userInfo) {
-  return sendRequest('/update-infos', 'POST', {
+  return sendRequest('/update/userinfos', 'POST', {
     userInfo: userInfo, // 用户信息
     // detailData: detailData // 详细数据
   });
 }
+
+// 封装用于增加 views 的函数
+function increaseViews(gid) {
+  return sendRequest(`/girls/views/increase`, 'POST', { girl_id: gid });
+}
+
+// 更新收藏
+function updateLikeRecords(userId, girlId, action) {
+  return sendRequest(`/update/likerecords`, 'POST', { 
+    user_id: userId,
+    girl_id: girlId,
+    action: action
+  });
+}
+
+
+// 更新评分记录
+function updateRateRecords(userId, girlId, rating) {
+  return sendRequest('/update/raterecords', 'POST', { 
+    user_id: userId,
+    girl_id: girlId,
+    rating: rating
+  });
+}
+
 
 export {
   sendUserInfo,
@@ -97,4 +122,7 @@ export {
   fetchHotRankListByIds,
   fetchScoreRankListByIds,
   updateInfos,
+  increaseViews,
+  updateLikeRecords,
+  updateRateRecords,
 };

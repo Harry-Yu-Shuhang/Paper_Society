@@ -28,7 +28,7 @@ func (g GirlWaterFallController) PostRandomGirls(c *gin.Context) {
 		request.RenderedIds = []int{}           // 如果解析失败，将 renderedIds 初始化为空数组
 	}
 
-	fmt.Println("前端发过来的 renderedIds:", request.RenderedIds)
+	//fmt.Println("前端发过来的 renderedIds:", request.RenderedIds)
 
 	// 检查是否需要过滤
 	query := db

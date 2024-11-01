@@ -19,9 +19,9 @@ type GirlProfile struct {
 	LikeNum       int
 	RateNum       []int
 	Voted         bool
+	Liked         bool
 
 	MyRate int
-	Liked  bool
 }
 
 type GiveCardRecord struct {

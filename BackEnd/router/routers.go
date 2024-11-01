@@ -20,7 +20,6 @@ func Router() *gin.Engine {
 	{
 		user.POST("/login", controllers.UserController{}.CreateUserInfo)
 	}
-	r.POST("/update-infos", controllers.UpdateInfosController{}.InfosUpdate) // 新增路由
 
 	girls := r.Group("/girls")
 	{
@@ -30,7 +29,14 @@ func Router() *gin.Engine {
 		girls.GET("/rank/hot", controllers.GirlRankController{}.GetGirlsHotRank)
 		girls.GET("/rank/score", controllers.GirlRankController{}.GetGirlsScoreRank)
 		girls.GET("/getGirlDetail", controllers.GirlProfileController{}.GetGirlDetail)
+		girls.POST("/views/increase", controllers.GirlProfileController{}.IncreaseViews)
 	}
 
+	updates := r.Group("/update")
+	{
+		updates.POST("/userinfos", controllers.UpdateInfosController{}.InfosUpdate)
+		updates.POST("/likerecords", controllers.UpdateRecordsController{}.UpdateLikeRecords)
+		updates.POST("/raterecords", controllers.UpdateRecordsController{}.UpdateRateRecords)
+	}
 	return r
 }

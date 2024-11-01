@@ -60,20 +60,20 @@ func GetGirlStatistics(gid string) (models.GirlStatistics, error) {
 	return stats, err
 }
 
-// GetGirlDetail 获取女孩详情，包括 HotRank、RateRank 和 Voted 状态
+// GetGirlDetail 获取女孩详情，包括 HotRank、RateRank、Voted 和 Liked 状态
 func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 	// 获取 gid 参数和 user_id 参数
 	gid := c.Query("gid")
 	userID := c.Query("user_id")
-	//fmt.Printf("收到女孩详情请求: gid = %s, user_id = %s\n", gid, userID)
 
 	// 使用 WaitGroup 处理并发查询
 	var wg sync.WaitGroup
 	var girl models.Girl
 	var stats models.GirlStatistics
 	var hotRank, rateRank, totalGirls int64
-	var voted bool
-	var errGirl, errStats, errRank, errVoted error
+	var voted, liked bool
+	var myRate int
+	var errGirl, errStats, errRank, errVoted, errLiked, errMyRate error
 
 	// 获取女孩信息
 	wg.Add(1)
@@ -91,7 +91,7 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 
 	// 重新启动新的 WaitGroup
 	wg = sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(5) // 增加到5个并发查询
 
 	// 获取统计信息
 	go func() {
@@ -116,55 +116,47 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 		voted = votedCount > 0 // 如果记录存在，则表示已投票
 	}()
 
+	// 检查是否已点赞
+	go func() {
+		defer wg.Done()
+		var likeCount int64
+		errLiked = dao.Db.Table("give_like_records").
+			Where("user_id = ? AND girl_id = ?", userID, gid).
+			Count(&likeCount).Error
+		liked = likeCount > 0 // 如果记录存在，则表示已点赞
+	}()
+
+	// 查询用户的评分记录
+	go func() {
+		defer wg.Done()
+		var rateRecord models.GiveRateRecord
+		errMyRate = dao.Db.Table("give_rate_records").
+			Where("user_id = ? AND girl_id = ?", userID, gid).
+			Select("rating").
+			First(&rateRecord).Error
+		if errMyRate == gorm.ErrRecordNotFound {
+			myRate = 0 // 如果没有找到记录，则设置 MyRate 为 0
+			errMyRate = nil
+		} else {
+			myRate = rateRecord.Rating
+		}
+	}()
+
 	// 等待所有查询完成
 	wg.Wait()
 
 	// 错误处理
-	if errGirl != nil || errStats != nil || errRank != nil || errVoted != nil {
+	if errGirl != nil || errStats != nil || errRank != nil || errVoted != nil || errLiked != nil || errMyRate != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
 		return
 	}
 
 	// 计算百分比
-	// firePercent := int64(float64(totalGirls-hotRank) / float64(totalGirls) * 100)
-	// starPercent := int64(float64(totalGirls-rateRank) / float64(totalGirls) * 100)
-
-	// 定义 WaitGroup 处理并发查询
-	var lowerHotCount, lowerRateCount int64
-	var hotErr, rateErr error
-
-	// 并发查询比当前 hotRank 更低的排名数量
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		hotErr = dao.Db.Raw(`
-        SELECT COUNT(hot) 
-        FROM girls 
-        WHERE hot < ?`, girl.Hot).Scan(&lowerHotCount).Error
-	}()
-
-	// 并发查询比当前 rateRank 更低的排名数量
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		rateErr = dao.Db.Raw(`
-        SELECT COUNT(average_rate) 
-        FROM girls 
-        WHERE average_rate < ?`, girl.AverageRate).Scan(&lowerRateCount).Error
-	}()
-
-	// 等待所有查询完成
-	wg.Wait()
-
-	// 检查查询错误
-	if hotErr != nil || rateErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rank data"})
-		return
+	var firePercent, starPercent int64
+	if totalGirls > 0 {
+		firePercent = int64(float64(totalGirls-hotRank) / float64(totalGirls) * 100)
+		starPercent = int64(float64(totalGirls-rateRank) / float64(totalGirls) * 100)
 	}
-
-	// 使用实际落后人数来计算百分比
-	firePercent := int64(float64(lowerHotCount) / float64(totalGirls) * 100)
-	starPercent := int64(float64(lowerRateCount) / float64(totalGirls) * 100)
 
 	// 构建返回的 GirlProfile 数据
 	girlProfile := models.GirlProfile{
@@ -175,8 +167,8 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 		AverageRate:   girl.AverageRate,
 		GirlSrc:       girl.GirlSrc,
 		Age:           girl.Age,
-		HotRank:       int64(hotRank),
-		RateRank:      int64(rateRank),
+		HotRank:       hotRank,
+		RateRank:      rateRank,
 		FirePercent:   firePercent,
 		StarPercent:   starPercent,
 		BackgroundSrc: girl.BackgroundSrc,
@@ -184,7 +176,9 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 		CardNum:       stats.CardNum,
 		LikeNum:       stats.LikeNum,
 		RateNum:       []int{stats.RateNumOne, stats.RateNumTwo, stats.RateNumThree, stats.RateNumFour, stats.RateNumFive},
-		Voted:         voted, // 设置 Voted 状态
+		Voted:         voted,
+		Liked:         liked,  // 设置 Liked 状态
+		MyRate:        myRate, // 设置 MyRate 值
 	}
 
 	// 返回包含排名的详细数据
@@ -192,7 +186,7 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 		"message": "Girl detail fetched successfully",
 		"data":    girlProfile,
 	})
-	fmt.Printf("返回给前端的女孩详情数据:\n %v\n%v\n", girlProfile.HotRank, girlProfile.RateRank)
+	fmt.Println("女孩详情获取成功", girlProfile.Liked, girlProfile.MyRate)
 }
 
 // UpdateTodayCardStatus 更新今天的签到卡状态
@@ -298,4 +292,31 @@ func (g GirlProfileController) UpdateTodayCardStatus(c *gin.Context) {
 
 		c.JSON(http.StatusOK, gin.H{"alreadyGiven": false})
 	}
+}
+
+// IncrementViews 增加指定女孩的 views 计数
+func (g GirlProfileController) IncreaseViews(c *gin.Context) {
+	var request struct {
+		GirlID int `json:"girl_id"`
+	}
+
+	// 解析 JSON 请求体
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	fmt.Println("收到增加女孩 views 的请求", request.GirlID)
+
+	// 更新 views 字段
+	err := dao.Db.Table("girls").
+		Where("id = ?", request.GirlID).
+		Update("views", gorm.Expr("views + ?", 1)).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to increment views"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Views incremented successfully"})
 }

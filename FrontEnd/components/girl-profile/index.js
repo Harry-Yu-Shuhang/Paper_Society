@@ -23,6 +23,18 @@ Component({
     },
   },
 
+    /**
+   * 监听属性变化
+   */
+  observers: {
+    'girlProfile': function(newProfile) {
+      // 当 girlProfile 更新时，更新 girlInfo 数据
+      this.setData({
+        girlInfo: newProfile
+      });
+    }
+  },
+
   /**
    * 组件的方法列表
    */

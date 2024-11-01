@@ -1,10 +1,8 @@
-//import {detailList} from "../../data/profiles"
-
 import * as echarts from '../../components/ec-canvas/echarts';
 
 import Toast from '@vant/weapp/toast/toast';
 
-import {fetchGirlDetail, updateCardRecord, updateInfos} from '../../utils/request';
+import {fetchGirlDetail, updateCardRecord, updateInfos, increaseViews, updateLikeRecords, updateRateRecords} from '../../utils/request';
 
 function initChart(canvas, width, height, dpr) {
   const chart = echarts.init(canvas, null, {
@@ -222,13 +220,44 @@ Page({
   },
 
   onChangeMyRate(event) {
-    Toast.success({
-      message:'修改评分成功',
-      duration:1500
-    });
+    const newRating = event.detail;
+    const currentRating = this.data.detailData.MyRate;
+
+    // 如果评分没有变化，不执行后续操作
+    if (newRating === currentRating) {
+      return;
+    }
+
+    // 更新评分
+    const updatedDetailData = { ...this.data.detailData, MyRate: newRating };
     this.setData({
-      myRate: event.detail,
+      detailData: updatedDetailData,
     });
+
+    // 获取用户信息和女孩的ID
+    const userInfo = wx.getStorageSync('userInfo');
+    const userId = userInfo ? userInfo.userID : null;
+    const girlId = this.data.gid;
+
+    // 向后端发送评分修改请求
+    updateRateRecords(userId, girlId, newRating)
+      .then(() => {
+        // 请求成功后，将更新的评分存入缓存
+        wx.setStorageSync('detailData', updatedDetailData);
+
+        // 显示成功提示
+        Toast.success({
+          message: '修改评分成功',
+          duration: 1500,
+        });
+      })
+      .catch(error => {
+        console.error('评分修改失败:', error);
+        Toast.fail({
+          message: '评分修改失败，请重试',
+          duration: 1500,
+        });
+      });
   },
 
   async onCardIconTap() {
@@ -236,71 +265,91 @@ Page({
     const userInfo = wx.getStorageSync('userInfo'); // 先从缓存获取整个 userInfo 对象
     const userId = userInfo ? userInfo.userID : null; // 提取其中的 userID
 
+    // 检查卡数量是否足够
+    if (userInfo.cardCount <= 0) {
+        Toast.fail({
+            message: '没有签到卡了',
+            duration: 1500
+        });
+        return; // 卡不足时退出
+    }
+
     try {
-      // 发送 POST 请求更新签到卡记录
-      const response = await updateCardRecord(userId, gid);
+        // 发送 POST 请求更新签到卡记录
+        const response = await updateCardRecord(userId, gid);
 
-      if (response.alreadyGiven) {
-        // 如果今天已经送过签到卡
-        Toast.fail({
-          message: '今天送过啦',
-          duration: 1500
-        });
-      } 
-      else if(userInfo.cardCount <= 0){
-        Toast.fail({
-          message: '没有签到卡了',
-          duration: 1500
-        });
-      }
-      else {
-        // 如果今天没有送过签到卡
-        Toast.success({
-          message: '送签到卡成功',
-          duration: 1500
-        });
+        if (response.alreadyGiven) {
+            // 如果今天已经送过签到卡
+            Toast.fail({
+                message: '今天送过啦',
+                duration: 1500
+            });
+        } else {
+            // 成功送出签到卡
+            Toast.success({
+                message: '送签到卡成功',
+                duration: 1500
+            });
 
-        // 更新 detailData.Voted 为 true
-        this.setData({
-          'detailData.Voted': true,
-          'detailData.CardNum': this.data.detailData.CardNum + 1,
-        });
+            // 更新 detailData.Voted 为 true
+            this.setData({
+                'detailData.Voted': true,
+                'detailData.CardNum': this.data.detailData.CardNum + 1,
+            });
 
-        // 更新缓存中的 userInfo.cardCount 并存入缓存
-        userInfo.cardCount -= 1;
-        wx.setStorageSync('userInfo', userInfo); // 更新缓存中的 userInfo
-        wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
-      }
+            // 更新缓存中的 userInfo.cardCount 并存入缓存
+            userInfo.cardCount -= 1;
+            wx.setStorageSync('userInfo', userInfo); // 更新缓存中的 userInfo
+            wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
+        }
     } catch (error) {
-      console.error('签到卡请求失败:', error);
-      Toast.fail({
-        message: '签到卡请求失败，请重试',
-        duration: 1500
-      });
+        console.error('签到卡请求失败:', error);
+        Toast.fail({
+            message: '签到卡请求失败，请重试',
+            duration: 1500
+        });
     }
   },
-  
-  onLikeIconTap() {
-    if (this.data.detailData.liked) {
-      // 如果已经收藏过，提示
-      Toast.success({
-        message:'取消收藏',
-        duration:1500
-      });
-      
-      this.setData({
-        'detailData.liked': false
-      });
-    } else {
-      // 如果没有收藏，点击后变成已送状态
-      Toast.success({
-        message:'收藏成功',
-        duration:1500
-      });
 
-      // 更新 detailData.liked 为 true
-      this.setData({
-        'detailData.liked': true
+  async onLikeIconTap() {
+    const gid = wx.getStorageSync('detailData').ID;
+    const userInfo = wx.getStorageSync('userInfo');
+    const userId = userInfo ? userInfo.userID : null;
+  
+    // 判断当前收藏状态
+    const isLiked = this.data.detailData.Liked;
+    const action = isLiked ? 'unlike' : 'like';
+  
+    try {
+      // 调用后端 API，执行收藏或取消收藏的操作
+      const response = await updateLikeRecords(userId, gid, action);
+  
+      if (action === 'like') {
+        Toast.success({
+          message: '收藏成功',
+          duration: 1500
+        });
+  
+        this.setData({
+          'detailData.Liked': true,
+          'detailData.LikeNum': this.data.detailData.LikeNum + 1,
+        });
+      } else {
+        Toast.success({
+          message: '取消收藏',
+          duration: 1500
+        });
+  
+        this.setData({
+          'detailData.Liked': false,
+          'detailData.LikeNum': this.data.detailData.LikeNum - 1,
+        });
+      }
+    } catch (error) {
+      console.error('收藏操作失败:', error);
+      Toast.fail({
+        message: '收藏操作失败，请重试',
+        duration: 1500
       });
     }
   },
@@ -317,6 +366,11 @@ Page({
     if (!isNaN(gid)) {
       this.setData({
         gid: gid // 将 gid 设置到 data 中
+      });
+
+      // 调用 incrementViews 来增加 views
+      increaseViews(gid).catch(error => {
+        console.error("增加 views 失败:", error);
       });
       
       // 检查缓存是否有匹配的 detailData
@@ -383,7 +437,6 @@ Page({
     if (userInfo && userInfo.userID) {
       try {
         // 发送请求更新用户信息，包括 cardCount 和未来可能的其他字段
-        // await updateInfos(userInfo, this.data.detailData);
         await updateInfos(userInfo);
         wx.setStorageSync('userInfo', userInfo); // 更新缓存
         wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
@@ -398,6 +451,47 @@ Page({
    */
   onPullDownRefresh() {
 
+    const gid = this.data.gid; // 当前女孩的 ID
+    const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
+    const userId = userInfo ? userInfo.userID : null; // 获取 userID
+
+    if (gid && userId) {
+      // 重新请求女孩详情
+      fetchGirlDetail(gid, userId)
+        .then((res) => {
+          if (res && res.data) {
+            // 更新页面显示和缓存
+            this.setData({
+              detailData: res.data,
+              RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)
+            });
+            wx.setStorageSync('detailData', res.data); // 存入缓存
+
+            // 停止下拉刷新动画
+            wx.stopPullDownRefresh();
+
+            // 提示刷新成功
+            Toast.success({
+              message: '刷新成功',
+              duration: 1500,
+            });
+          }
+        })
+        .catch((error) => {
+          console.error('刷新角色详情失败:', error);
+          wx.stopPullDownRefresh(); // 停止下拉刷新动画
+          Toast.fail({
+            message: '刷新失败，请重试',
+            duration: 1500,
+          });
+        });
+    } else {
+      wx.stopPullDownRefresh(); // 停止下拉刷新动画
+      Toast.fail({
+        message: '无效的用户信息',
+        duration: 1500,
+      });
+    }
   },
 
   /**

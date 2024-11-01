@@ -50,7 +50,7 @@
           </view>
         </view>
         <view class="give-like">
-          <van-icon name="like" bind:tap="onLikeIconTap" color="{{ detailData.liked ? '#E74C3C' : '#a9a9a9' }}" size="25" class="like-icon"/>
+          <van-icon name="like" bind:tap="onLikeIconTap" color="{{ detailData.Liked ? '#E74C3C' : '#a9a9a9' }}" size="25" class="like-icon"/>
           <view class="like-text">
             <text class="gift-text">收藏</text>
             <text class="gift-num">{{detailData.LikeNum}}</text>
@@ -100,9 +100,15 @@
       </view>
       <view class="first_rate">
         <!-- 评分组件 -->
-        <van-rate value="{{ myRate }}" bind:change="onChangeMyRate" color="gold" class="rate_bar" size="25"/>
-        <!-- 根据 myRate 判断显示星级还是“尚未评分” -->
-        <text class="rate_text">{{ myRate ? myRate + '分' : '尚未评分' }}</text>
+        <van-rate 
+          value="{{ detailData.MyRate }}" 
+          bind:change="onChangeMyRate" 
+          color="gold" 
+          class="rate_bar" 
+          size="25"
+        />
+        <!-- 根据 detailData.MyRate 判断显示星级还是“尚未评分” -->
+        <text class="rate_text">{{ detailData.MyRate ? detailData.MyRate + '分' : '尚未评分' }}</text>
       </view>
       <text class="share-text">点击右上角"..." 邀请好友为她助力</text>
     </view>

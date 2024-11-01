@@ -52,18 +52,6 @@ func (u UpdateInfosController) InfosUpdate(c *gin.Context) {
 		return
 	}
 
-	// 更新详细信息
-	// detailUpdateData := map[string]interface{}{
-	// 	"card_num": request.DetailData.CardNum,
-	// 	"like_num": request.DetailData.LikeNum,
-	// }
-	// if err := dao.Db.Table("girl_statistics").
-	// 	Where("girl_id = ?", request.DetailData.ID).
-	// 	Updates(detailUpdateData).Error; err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update detail info"})
-	// 	return
-	// }
-
 	// 成功响应
 	c.JSON(http.StatusOK, gin.H{"message": "User and detail info updated successfully"})
 }
