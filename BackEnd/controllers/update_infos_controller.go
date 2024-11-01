@@ -32,8 +32,6 @@ func (u UpdateInfosController) InfosUpdate(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
-	// fmt.Printf("接收到的用户信息: %+v\n", request.UserInfo)
-	// fmt.Printf("接收到的详细信息: %+v\n", request.DetailData)
 
 	// // 检查 UserID 和 DetailData.ID 是否有效
 	// if request.UserInfo.UserID == 0 || request.DetailData.ID == 0 {
