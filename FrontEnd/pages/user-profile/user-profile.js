@@ -36,25 +36,39 @@ Page({
         avatarUrl: userInfo.avatarUrl,
         userName: userInfo.nickName,
         daysJoined,
-        joinDateString
+        joinDateString}, () => {
+          // 确保数据更新后调用图表更新方法
+          this.updateChart();  // 假设 updateChart 是更新图表的函数
       });
     } else {
       console.error("缓存中缺少有效的用户信息");
     }
   },
 
+  updateChart() {
+    const chartData = this.data.daysJoined; // 示例数据
+    this.chart.setOption({
+      series: [
+        {
+          data: chartData  // 使用新的数据
+        }
+      ]
+    });
+  },
+
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady() {
-
+    // 初始化图表
+    this.initChart();
   },
 
   /**
    * 生命周期函数--监听页面显示
    */
   onShow() {
-
+    this.fetchUserInfoAndUpdateChart();
   },
 
   /**
@@ -75,7 +89,18 @@ Page({
    * 页面相关事件处理函数--监听用户下拉动作
    */
   onPullDownRefresh() {
-
+    this.fetchUserInfoAndUpdateChart();
+    wx.stopPullDownRefresh();
+  },
+  fetchUserInfoAndUpdateChart() {
+    const userInfo = wx.getStorageSync('userInfo');
+    if (userInfo) {
+      this.setData({
+        daysJoined: userInfo.daysJoined,
+      }, () => {
+        this.updateChart();
+      });
+    }
   },
 
   /**
