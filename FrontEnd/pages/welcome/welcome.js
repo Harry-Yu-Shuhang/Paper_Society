@@ -164,14 +164,13 @@ Page({
       if (response && typeof response === 'object') {
         // 更新 userInfo 对象的属性而不重新赋值整个对象(因为userInfo是const)
         userInfo.userID = response.userID || userInfo.userID;
-        userInfo.cardCount = response.cardCount || userInfo.cardCount;
+        userInfo.cardCount = response.cardCount ?? 0; // 如果未定义，默认为 0
         userInfo.isNewUser = response.isNewUser || userInfo.isNewUser;
         userInfo.isSameDay = response.isSameDay || userInfo.isSameDay;
         userInfo.nickName = response.nickName || userInfo.nickName;
         userInfo.avatarUrl = response.avatarUrl || userInfo.avatarUrl;
         wx.setStorageSync('userInfo', userInfo);
-        this.setData({ userInfo });
-        
+        this.setData({ userInfo });   
         // 调用预加载数据函数
         await preloadRankData();
       } else {

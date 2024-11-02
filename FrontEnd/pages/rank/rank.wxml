@@ -1,5 +1,5 @@
 <!-- 加载动画组件 -->
-<loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
+<!-- <loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window> -->
 <!-- 加载成功/失败组件 -->
 <success-window wx:if="{{isSuccess}}" />
 <fail-window wx:if="{{isFail}}" text="{{failReason}}" />

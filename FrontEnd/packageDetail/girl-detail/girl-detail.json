@@ -4,7 +4,8 @@
     "van-rate": "@vant/weapp/rate/index",
     "ec-canvas": "/components/ec-canvas/ec-canvas",
     "girl-profile": "/components/girl-profile/index",
-    "van-toast": "@vant/weapp/toast/index"
+    "fail-window":"/components/fail-window/index",
+    "success-window":"/components/success-window/index"
   },
   "enablePullDownRefresh": true
 }

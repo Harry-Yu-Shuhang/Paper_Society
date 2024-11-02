@@ -2,7 +2,8 @@
   <view class="loading-window">
     <image src="/images/Paper_Society.jpg" class="loading-icon"></image>
     <view class="loading-text">
-      加载成功喵(〃∀〃)
+      <!-- 加载成功喵(〃∀〃) -->
+      {{text}}
     </view>
   </view>
 </view>

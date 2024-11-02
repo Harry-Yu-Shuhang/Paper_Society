@@ -1,4 +1,4 @@
-import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds } from '../../utils/request';
+import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail } from '../../utils/request';
 let rankType = 'hotRank';
 
 Page({
@@ -160,8 +160,29 @@ Page({
     }
   },
 
-  onPullDownRefresh() {
+  async onPullDownRefresh() {
     this.fetchRankData(this.data.activeTab, 0, true);
+    // 获取缓存中的 `detailData` 和 `userInfo`
+    const detailData = wx.getStorageSync('detailData');
+    const userInfo = wx.getStorageSync('userInfo');
+
+    // 检查缓存中是否存在有效的 `ID` 和 `userID`
+    if (detailData?.ID && userInfo?.userID) {
+      try {
+        // 通过缓存中的 `ID` 和 `userID` 发送请求更新详情数据
+        const updatedDetail = await fetchGirlDetail(detailData.ID, userInfo.userID);
+
+        // 更新缓存和页面数据
+        wx.setStorageSync('detailData', updatedDetail);
+        this.setData({
+          detailData: updatedDetail,
+        });
+      } catch (error) {
+        console.error("刷新失败:", error);
+      } 
+    } else {
+      console.error("缓存中缺少有效的ID或userID");
+    }
     wx.stopPullDownRefresh();
   },
 });

@@ -1,3 +1,8 @@
+<!-- 加载成功组件 -->
+<success-window wx:if="{{isSuccess}}" text="{{successReason}}" />
+<!-- 加载失败组件 -->
+<fail-window wx:if="{{isFail}}" text="{{failReason}}" />
+
 <van-toast id="van-toast" />
 <scroll-view enable-flex scroll-y class="container">
   <image src="{{detailData.BackgroundSrc}}" class="background-img"/>
@@ -77,7 +82,9 @@
         <text class="role_rate_text">角色评分</text>
         <van-rate value="{{detailData.AverageRate}}" allow-half disabled-color="#0288D1" disabled class="rate_bar_blue" size="11"/>
         <text class="role_rate_text">{{detailData.AverageRate}}</text>
-        <text class="rate_num">({{RateNum}})</text>
+        <text class="rate_num">(</text>
+        <text class="rate_number">{{RateNum}}</text>
+        <text class="rate_number">)</text>
       </view>
     </view>
   </view>

@@ -228,6 +228,14 @@
   margin-bottom: 4rpx;
 }
 
+.rate_number{
+  margin-left: 5rpx;
+  font-size: 18rpx;
+  color:#999;
+  margin-top: auto;
+  margin-bottom: 4rpx;
+}
+
 .share-text{
   display:flex;
   flex-direction: row;
