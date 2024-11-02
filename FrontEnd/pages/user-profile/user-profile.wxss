@@ -1,0 +1,108 @@
+/* 页面容器，背景填充整个屏幕 */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f5f5f5;
+  min-height: 100vh; /* 全屏高度 */
+  padding: 0; /* 去除顶部填充 */
+}
+
+/* 用户信息卡片 */
+.user-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 整体左对齐 */
+  width: 100%; /* 填满页面宽度 */
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20rpx;
+  padding-left: 20rpx; /* 统一左边距 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
+  margin-top: 0; /* 顶部无间隙 */
+}
+
+.user-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 20rpx;
+  width: 100%;
+  margin-left: 30rpx;
+}
+
+.avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  margin-right: 15rpx;
+  border: 3px solid #fff;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 使用户信息内容左对齐 */
+}
+
+.username {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+.join-days {
+  font-size: 14px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: #ddd;
+  margin: 15rpx 0;
+}
+
+.user-stats {
+  display: flex;
+  flex-direction: column;
+  padding-left: 50rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start; /* 左对齐 */
+  width: 100%; /* 控制宽度，保证内容在一行显示 */
+  margin: 5rpx 0;
+}
+
+.stat-title {
+  font-size: 16px;
+  color: #666;
+  margin-right: 5rpx;
+}
+
+.stat-icon {
+  width: 24rpx;
+  height: 24rpx;
+  margin: 0 5rpx;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 20rpx;
+  margin-left: 50rpx;
+  text-align: left;
+  width: 100%;
+}

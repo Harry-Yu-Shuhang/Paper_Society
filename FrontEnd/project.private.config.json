@@ -12,6 +12,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/user-profile/user-profile",
+          "pathName": "pages/user-profile/user-profile",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "packageDetail/girl-detail/girl-detail",
           "pathName": "packageDetail/girl-detail/girl-detail",
           "query": "gid=2",

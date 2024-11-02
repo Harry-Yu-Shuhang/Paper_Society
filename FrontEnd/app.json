@@ -2,7 +2,8 @@
   "pages": [
     "pages/welcome/welcome",
     "pages/girls-waterfall/girls-waterfall",
-    "pages/rank/rank"
+    "pages/rank/rank",
+    "pages/user-profile/user-profile"
   ],
   "lazyCodeLoading": "requiredComponents",
   "entryPagePath": "pages/rank/rank",
@@ -24,6 +25,12 @@
         "pagePath": "pages/girls-waterfall/girls-waterfall",
         "iconPath": "images/tabbar/店铺.png",
         "selectedIconPath": "images/tabbar/店铺-fill.png"
+      },
+      {
+        "text": "我的",
+        "pagePath": "pages/user-profile/user-profile",
+        "iconPath": "images/tabbar/people.png",
+        "selectedIconPath": "images/tabbar/people_fill.png"
       }
     ]
   },

@@ -27,20 +27,23 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 	// 检查是否为新用户
 	var existingUser models.UserInfo
 	isNewUser := dao.Db.Where("open_id = ?", userInfo.OpenID).First(&existingUser).Error == gorm.ErrRecordNotFound
-	var userID int    // 用于存储用户ID
-	var cardCount int // 用于存储返回给前端的 CardCount
+	var userID int       // 用于存储用户ID
+	var cardCount int    // 用于存储返回给前端的 CardCount
+	var createTime int64 // 用于存储返回给前端的 CreateTime
 
 	isSameDayLogin := true
 	if isNewUser {
 		// 新用户，初始化 CardCount，赠送 3 张签到卡，加上签到奖励，总共6张
 		userInfo.CardCount = 6
+		userInfo.CreateTime = time.Now().Unix() // 记录用户创建时间
 		// 保存到数据库
 		if err := dao.Db.Create(&userInfo).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save new user info"})
 			return
 		}
-		userID = userInfo.ID           // 获取新用户的ID
-		cardCount = userInfo.CardCount // 获取新用户的CardCount
+		userID = userInfo.ID             // 获取新用户的ID
+		cardCount = userInfo.CardCount   // 获取新用户的CardCount
+		createTime = userInfo.CreateTime // 获取新用户的CardCount
 
 	} else {
 		// 老用户，判断是否在同一天登录
@@ -58,17 +61,19 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user info"})
 			return
 		}
-		userID = existingUser.ID           // 获取老用户的ID
-		cardCount = existingUser.CardCount // 获取老用户的CardCount
+		userID = existingUser.ID             // 获取老用户的ID
+		cardCount = existingUser.CardCount   // 获取老用户的CardCount
+		createTime = existingUser.CreateTime // 获取老用户的CreateTime
 	}
 
 	// 返回用户信息，包括是否为今天首次登录和 CardCount
 	c.JSON(http.StatusOK, gin.H{
-		"message":   "User info updated successfully",
-		"isSameDay": isSameDayLogin,
-		"isNewUser": isNewUser,
-		"cardCount": cardCount,
-		"userID":    userID,
+		"message":    "User info updated successfully",
+		"isSameDay":  isSameDayLogin,
+		"isNewUser":  isNewUser,
+		"cardCount":  cardCount,
+		"userID":     userID,
+		"createTime": createTime,
 	})
 }
 

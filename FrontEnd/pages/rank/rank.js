@@ -167,22 +167,32 @@ Page({
     const userInfo = wx.getStorageSync('userInfo');
 
     // 检查缓存中是否存在有效的 `ID` 和 `userID`
-    if (detailData?.ID && userInfo?.userID) {
-      try {
-        // 通过缓存中的 `ID` 和 `userID` 发送请求更新详情数据
-        const updatedDetail = await fetchGirlDetail(detailData.ID, userInfo.userID);
+    // 检查缓存中是否存在有效的 `ID` 和 `userID`
+  if (detailData && detailData.data.ID && userInfo && userInfo.userID) {
+    try {
+      // 通过缓存中的 `ID` 和 `userID` 发送请求更新详情数据
+      const updatedDetail = await fetchGirlDetail(detailData.data.ID, userInfo.userID);
 
-        // 更新缓存和页面数据
-        wx.setStorageSync('detailData', updatedDetail);
-        this.setData({
-          detailData: updatedDetail,
-        });
-      } catch (error) {
-        console.error("刷新失败:", error);
-      } 
-    } else {
-      console.error("缓存中缺少有效的ID或userID");
-    }
+      // 更新缓存和页面数据
+      wx.setStorageSync('detailData', updatedDetail);
+      this.setData({
+        detailData: updatedDetail,
+      });
+    } catch (error) {
+      console.error("刷新失败:", error);
+      this.setData({
+        isFail: true,
+        failReason: '刷新详情数据失败，请稍后重试',
+      });
+      setTimeout(() => {
+        this.setData({ isFail: false });
+      }, 800);
+    } 
+  } else {
+    // console.log("detailData是:",detailData)
+    // console.log("userInfo是:",userInfo)
+    console.error("缓存中缺少有效的ID或userID");
+  }
     wx.stopPullDownRefresh();
   },
 });

@@ -100,11 +100,13 @@ Page({
         userInfo.cardCount = response.cardCount || userInfo.cardCount;
         userInfo.isNewUser = response.isNewUser || userInfo.isNewUser;
         userInfo.isSameDay = response.isSameDay || userInfo.isSameDay;
+        userInfo.createTime = response.createTime  || userInfo.createTime;
         wx.setStorageSync('userInfo', userInfo); // 更新缓存
         this.setData({ userInfo });
       } else {
         console.error("Invalid response structure:", response);
       }
+
     } catch (error) {
       console.error("Failed to update userInfo:", error);
     }
@@ -169,6 +171,7 @@ Page({
         userInfo.isSameDay = response.isSameDay || userInfo.isSameDay;
         userInfo.nickName = response.nickName || userInfo.nickName;
         userInfo.avatarUrl = response.avatarUrl || userInfo.avatarUrl;
+        userInfo.createTime = response.createTime || userInfo.createTime;
         wx.setStorageSync('userInfo', userInfo);
         this.setData({ userInfo });   
         // 调用预加载数据函数
