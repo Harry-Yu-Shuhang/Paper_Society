@@ -69,6 +69,7 @@ Page({
       isSameDay: false,
       nickName: "",
       openid: "",
+      userHot : 0,
     },
     hasUserInfo: false, // 是否已经有用户信息
   },
@@ -96,11 +97,11 @@ Page({
     try {
       const response = await sendUserInfo(userInfo); // 请求后端获取最新的 userInfo
       if (response && typeof response === 'object') {
-        userInfo.userID = response.userID || userInfo.userID;
-        userInfo.cardCount = response.cardCount || userInfo.cardCount;
-        userInfo.isNewUser = response.isNewUser || userInfo.isNewUser;
-        userInfo.isSameDay = response.isSameDay || userInfo.isSameDay;
-        userInfo.createTime = response.createTime  || userInfo.createTime;
+        userInfo.userID = response.userID;
+        userInfo.cardCount = response.cardCount;
+        userInfo.isNewUser = response.isNewUser;
+        userInfo.isSameDay = response.isSameDay;
+        userInfo.createTime = response.createTime;
         wx.setStorageSync('userInfo', userInfo); // 更新缓存
         this.setData({ userInfo });
       } else {
@@ -172,6 +173,7 @@ Page({
         userInfo.nickName = response.nickName || userInfo.nickName;
         userInfo.avatarUrl = response.avatarUrl || userInfo.avatarUrl;
         userInfo.createTime = response.createTime || userInfo.createTime;
+        userInfo.userHot = response.userHot || userInfo.userHot;
         wx.setStorageSync('userInfo', userInfo);
         this.setData({ userInfo });   
         // 调用预加载数据函数

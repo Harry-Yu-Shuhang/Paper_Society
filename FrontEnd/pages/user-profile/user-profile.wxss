@@ -20,6 +20,7 @@
   padding-left: 20rpx; /* 统一左边距 */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
   margin-top: 0; /* 顶部无间隙 */
+  min-height: 100vh; /* 全屏高度 */
 }
 
 .user-info {
@@ -82,19 +83,31 @@
 .stat-title {
   font-size: 16px;
   color: #666;
-  margin-right: 5rpx;
-}
-
-.stat-icon {
-  width: 24rpx;
-  height: 24rpx;
-  margin: 0 5rpx;
+  margin-right: 20rpx;
+  width:150rpx;
 }
 
 .stat-value {
   font-size: 18px;
   font-weight: bold;
   color: #333;
+  width:130rpx;
+  margin-top: 5rpx;
+}
+
+.stat-text{
+  font-size: 15px;
+  font-weight: bold;
+  color: #888;
+}
+
+.stat-over-user{
+  font-size: 10px;
+  color:#999;
+}
+
+.stat-icon{
+  width:60rpx;
 }
 
 .section-title {
