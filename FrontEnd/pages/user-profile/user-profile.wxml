@@ -44,6 +44,9 @@
     <view class="divider"></view>
 
     <!-- 我的收藏标题 -->
-    <view class="section-title">我的收藏</view>
+    <view class="like-line">
+      <text class="section-title">我的收藏(0)</text>
+      <van-button round plain hairline type="info" size="mini" class="tougao-button">我要投稿</van-button>
+    </view>
   </view>
 </view>

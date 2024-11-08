@@ -36,24 +36,23 @@ async function preloadRankData() {
     if (waterfallResponse && waterfallResponse.data) {
       wx.setStorageSync('initialGirlsData', waterfallResponse.data);
     }
-
-    // 预加载热度排行榜数据
-    const hotRankResponse = await fetchHotRankList(0);
-    // 预加载评分排行榜数据
-    const scoreRankResponse = await fetchScoreRankList(0);
-
-    if (hotRankResponse && hotRankResponse.idList && scoreRankResponse && scoreRankResponse.idList) {
-      wx.setStorageSync('hotRankData', {
-        idListCache: hotRankResponse.idList,
-        fetchRankList: hotRankResponse.data,
-        hasMoreData: hotRankResponse.hasMoreData
-      });
-      wx.setStorageSync('scoreRankData', {
-        idListCache: scoreRankResponse.idList,
-        fetchRankList: scoreRankResponse.data,
-        hasMoreData: scoreRankResponse.hasMoreData
-      });
-    }
+        // 预加载热度排行榜数据
+        const hotRankResponse = await fetchHotRankList(0);
+        // 预加载评分排行榜数据
+        const scoreRankResponse = await fetchScoreRankList(0);
+    
+        if (hotRankResponse && hotRankResponse.idList && scoreRankResponse && scoreRankResponse.idList) {
+          wx.setStorageSync('hotRankData', {
+            idListCache: hotRankResponse.idList,
+            fetchRankList: hotRankResponse.data,
+            hasMoreData: hotRankResponse.hasMoreData
+          });
+          wx.setStorageSync('scoreRankData', {
+            idListCache: scoreRankResponse.idList,
+            fetchRankList: scoreRankResponse.data,
+            hasMoreData: scoreRankResponse.hasMoreData
+          });
+        }
   } catch (error) {
     console.error("Failed to preload data:", error);
   }

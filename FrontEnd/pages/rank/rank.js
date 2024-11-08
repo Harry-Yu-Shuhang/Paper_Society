@@ -138,26 +138,26 @@ Page({
   },
 
   onLoad() {
-    // 预加载热度排行榜
-    const hotRankCache = wx.getStorageSync('hotRankData');
-    const scoreRankCache = wx.getStorageSync('scoreRankData');
+        // 预加载热度排行榜
+        const hotRankCache = wx.getStorageSync('hotRankData');
+        const scoreRankCache = wx.getStorageSync('scoreRankData');
+        
+        if (hotRankCache && hotRankCache.idListCache) {
+          this.setData({
+            idListCache: hotRankCache.idListCache,
+            fetchRankList: hotRankCache.fetchRankList,
+            currentCount: hotRankCache.fetchRankList.length,
+            hasMoreData: hotRankCache.hasMoreData,
+            loading: false,
+          });
+        } else {
+          this.fetchRankData('hotRank');
+        }
     
-    if (hotRankCache && hotRankCache.idListCache) {
-      this.setData({
-        idListCache: hotRankCache.idListCache,
-        fetchRankList: hotRankCache.fetchRankList,
-        currentCount: hotRankCache.fetchRankList.length,
-        hasMoreData: hotRankCache.hasMoreData,
-        loading: false,
-      });
-    } else {
-      this.fetchRankData('hotRank');
-    }
-
-    // 预加载评分排行榜数据以便切换时无需再次加载
-    if (!scoreRankCache) {
-      this.fetchRankData('scoreRank');
-    }
+        // 预加载评分排行榜数据以便切换时无需再次加载
+        if (!scoreRankCache) {
+          this.fetchRankData('scoreRank');
+        }
   },
 
   async onPullDownRefresh() {
@@ -166,33 +166,29 @@ Page({
     const detailData = wx.getStorageSync('detailData');
     const userInfo = wx.getStorageSync('userInfo');
 
-    // 检查缓存中是否存在有效的 `ID` 和 `userID`
-    // 检查缓存中是否存在有效的 `ID` 和 `userID`
-  if (detailData && detailData.data.ID && userInfo && userInfo.userID) {
-    try {
-      // 通过缓存中的 `ID` 和 `userID` 发送请求更新详情数据
-      const updatedDetail = await fetchGirlDetail(detailData.data.ID, userInfo.userID);
+    if (detailData) {
+      try {
+        // 通过缓存中的 `ID` 和 z`userID` 发送请求更新详情数据
+        const updatedDetail = await fetchGirlDetail(detailData.ID, userInfo.userID);
 
-      // 更新缓存和页面数据
-      wx.setStorageSync('detailData', updatedDetail);
-      this.setData({
-        detailData: updatedDetail,
-      });
-    } catch (error) {
-      console.error("刷新失败:", error);
-      this.setData({
-        isFail: true,
-        failReason: '刷新详情数据失败，请稍后重试',
-      });
-      setTimeout(() => {
-        this.setData({ isFail: false });
-      }, 800);
-    } 
-  } else {
-    // console.log("detailData是:",detailData)
-    // console.log("userInfo是:",userInfo)
-    console.error("缓存中缺少有效的ID或userID");
-  }
-    wx.stopPullDownRefresh();
-  },
+        // 更新缓存和页面数据
+        wx.setStorageSync('detailData', updatedDetail.data);
+        this.setData({
+          detailData: updatedDetail,
+        });
+      } catch (error) {
+        console.error("刷新失败:", error);
+        this.setData({
+          isFail: true,
+          failReason: '刷新详情数据失败，请稍后重试',
+        });
+        setTimeout(() => {
+          this.setData({ isFail: false });
+        }, 800);
+      } 
+    } else {
+      console.log("缓存里没有角色数据，不需要更新");
+    }
+      wx.stopPullDownRefresh();
+    },
 });

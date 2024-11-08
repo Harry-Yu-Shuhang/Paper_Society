@@ -36,7 +36,7 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  margin-right: 15rpx;
+  margin-right: 30rpx;
   border: 3px solid #fff;
 }
 
@@ -110,12 +110,24 @@
   width:60rpx;
 }
 
+.like-line{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .section-title {
   font-size: 18px;
   font-weight: bold;
   color: #333;
-  margin-top: 20rpx;
-  margin-left: 50rpx;
   text-align: left;
   width: 100%;
+  margin-left: 50rpx;
+}
+
+.tougao-button{
+  margin-right: 55rpx;
+  margin-bottom: 10rpx;
 }
