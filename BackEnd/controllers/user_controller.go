@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"paper_community/dao"
 	"paper_community/models"
 	"paper_community/utils"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,11 +29,14 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 	var userID int
 	var cardCount int
 	var createTime int64
+	var userHot int
 
 	isSameDayLogin := true
 	if isNewUser {
 		userInfo.CardCount = 6
 		userInfo.CreateTime = time.Now().Unix()
+		userHot = calculateUserHot(userInfo.ID) // 计算新用户的热度
+		userInfo.UserHot = userHot
 		if err := dao.Db.Create(&userInfo).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save new user info"})
 			return
@@ -45,6 +50,11 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 			existingUser.CardCount += 3
 		}
 		existingUser.LoginTime = userInfo.LoginTime
+
+		// 使用 goroutine 并发计算热度
+		userHot = calculateUserHot(existingUser.ID)
+		existingUser.UserHot = userHot
+
 		if err := dao.Db.Save(&existingUser).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user info"})
 			return
@@ -53,9 +63,6 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		cardCount = existingUser.CardCount
 		createTime = existingUser.CreateTime
 	}
-
-	// 使用 goroutine 并发计算热度
-	userHot := calculateUserHot(userID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":    "User info updated successfully",
@@ -110,4 +117,100 @@ func isSameDay(t1, t2 int64) bool {
 	y1, m1, d1 := time.Unix(t1, 0).Date()
 	y2, m2, d2 := time.Unix(t2, 0).Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
+}
+
+func (u UserController) GetUserRanking(c *gin.Context) {
+	userID := c.Query("user_id")
+
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
+	var currentUser models.UserInfo
+	if err := dao.Db.Where("id = ?", userID).First(&currentUser).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// 获取超过的用户百分比（签到卡）
+	var cardCountHigher int64
+	dao.Db.Model(&models.UserInfo{}).
+		Where("card_count < ?", currentUser.CardCount).
+		Count(&cardCountHigher)
+
+	// 获取超过的用户百分比（贡献热度）
+	var userHotHigher int64
+	dao.Db.Model(&models.UserInfo{}).
+		Where("user_hot < ?", currentUser.UserHot).
+		Count(&userHotHigher)
+
+	var totalUsers int64
+	dao.Db.Model(&models.UserInfo{}).Count(&totalUsers)
+
+	cardPercent := float64(cardCountHigher) / float64(totalUsers) * 100
+	hotPercent := float64(userHotHigher) / float64(totalUsers) * 100
+	// 保留两位小数
+	formattedCardPercent := fmt.Sprintf("%.2f", cardPercent)
+	formattedHotPercent := fmt.Sprintf("%.2f", hotPercent)
+
+	c.JSON(http.StatusOK, gin.H{
+		"cardPercent": formattedCardPercent,
+		"hotPercent":  formattedHotPercent,
+	})
+}
+
+// 获取用户收藏的角色
+func (u UserController) GetUserFavorites(c *gin.Context) {
+	userID := c.Query("user_id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
+	// 将 userID 转换为整数
+	uid, err := strconv.Atoi(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id"})
+		return
+	}
+
+	// 查询用户收藏的记录
+	var likeRecords []models.GiveLikeRecord
+	if err := dao.Db.Where("user_id = ?", uid).Find(&likeRecords).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get favorites"})
+		return
+	}
+
+	if len(likeRecords) == 0 {
+		c.JSON(http.StatusOK, gin.H{"favorites": []models.FavoriteList{}})
+		return
+	}
+
+	var favorites []models.FavoriteList
+
+	// 根据收藏记录查询角色信息，并构建返回数据
+	for _, record := range likeRecords {
+		var girl models.GirlRank
+		if err := dao.Db.Table("girls").Select("id", "avatar_src", "name").
+			Where("id = ?", record.GirlID).First(&girl).Error; err != nil {
+			fmt.Printf("Failed to find girl with ID %d: %v\n", record.GirlID, err)
+			continue
+		}
+
+		// 构建 FavoriteList 数据
+		favorite := models.FavoriteList{
+			ID:        record.ID,
+			GirlID:    girl.ID,
+			AvatarSrc: girl.AvatarSrc,
+			Name:      girl.Name,
+			CreatedAt: record.CreatedAt,
+		}
+		favorites = append(favorites, favorite)
+	}
+
+	// 返回查询结果
+	c.JSON(http.StatusOK, gin.H{
+		"favorites": favorites,
+	})
 }

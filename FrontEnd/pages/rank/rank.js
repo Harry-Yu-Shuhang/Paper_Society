@@ -56,7 +56,6 @@ Page({
         this.setData({ isSuccess: true });
         setTimeout(() => this.setData({ isSuccess: false }), 500);
       }
-
       setTimeout(() => this.setData({ loading: false }), 800);
     } catch (error) {
       console.error('获取排行榜数据失败:', error);
@@ -77,7 +76,7 @@ Page({
     try {
       // Calculate offset and the next batch of IDs
       const offset = this.data.currentCount;
-      const nextBatchIds = this.data.idListCache.slice(offset, offset + 30);
+      const nextBatchIds = this.data.idListCache.slice(offset, offset + 30);//一次获取30个
   
       // Check if nextBatchIds is a valid array
       if (!Array.isArray(nextBatchIds) || nextBatchIds.length === 0) {
@@ -138,26 +137,25 @@ Page({
   },
 
   onLoad() {
-        // 预加载热度排行榜
-        const hotRankCache = wx.getStorageSync('hotRankData');
-        const scoreRankCache = wx.getStorageSync('scoreRankData');
-        
-        if (hotRankCache && hotRankCache.idListCache) {
-          this.setData({
-            idListCache: hotRankCache.idListCache,
-            fetchRankList: hotRankCache.fetchRankList,
-            currentCount: hotRankCache.fetchRankList.length,
-            hasMoreData: hotRankCache.hasMoreData,
-            loading: false,
-          });
-        } else {
-          this.fetchRankData('hotRank');
-        }
-    
-        // 预加载评分排行榜数据以便切换时无需再次加载
-        if (!scoreRankCache) {
-          this.fetchRankData('scoreRank');
-        }
+    // 预加载热度排行榜
+    const hotRankCache = wx.getStorageSync('hotRankData');
+    const scoreRankCache = wx.getStorageSync('scoreRankData');
+
+    if (hotRankCache && hotRankCache.idListCache) {
+      this.setData({
+        idListCache: hotRankCache.idListCache,
+        fetchRankList: hotRankCache.fetchRankList,
+        currentCount: hotRankCache.fetchRankList.length,
+        hasMoreData: hotRankCache.hasMoreData,
+        loading: false,
+      });
+    } else {
+      this.fetchRankData('hotRank');
+    }
+    // 预加载评分排行榜数据以便切换时无需再次加载
+    if (!scoreRankCache) {
+      this.fetchRankData('scoreRank');
+    }
   },
 
   async onPullDownRefresh() {
@@ -180,7 +178,7 @@ Page({
         console.error("刷新失败:", error);
         this.setData({
           isFail: true,
-          failReason: '刷新详情数据失败，请稍后重试',
+          failReason: '信号飞到三次元了',
         });
         setTimeout(() => {
           this.setData({ isFail: false });

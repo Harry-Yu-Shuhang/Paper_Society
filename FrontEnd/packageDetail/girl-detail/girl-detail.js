@@ -252,6 +252,12 @@ Page({
     // 向后端发送评分修改请求
     updateRateRecords(userId, girlId, newRating)
       .then(() => {
+        // 如果是首次评分，增加热度
+        if (!currentRating) {
+          userInfo.userHot += 1;
+          wx.setStorageSync('userInfo', userInfo);
+        }
+        
         // 请求成功后，将更新的评分存入缓存
         wx.setStorageSync('detailData', updatedDetailData);
         this.setData({
@@ -322,7 +328,11 @@ Page({
           }, 500);
           return; // 退出函数
         }
-  
+        // 成功送出签到卡，增加热度
+        userInfo.userHot += 1;
+        // 更新缓存中的 userInfo.cardCount 并存入缓存
+        userInfo.cardCount -= 1;
+
         this.setData({
           isSuccess: true, 
           successReason: '送签到卡成功喵(〃∀〃)'
@@ -336,9 +346,7 @@ Page({
             'detailData.Voted': true,
             'detailData.CardNum': this.data.detailData.CardNum + 1,
         });
-  
-        // 更新缓存中的 userInfo.cardCount 并存入缓存
-        userInfo.cardCount -= 1;
+
         wx.setStorageSync('userInfo', userInfo); // 更新缓存中的 userInfo
         wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
     } catch (error) {
@@ -367,40 +375,38 @@ Page({
       const response = await updateLikeRecords(userId, gid, action);
   
       if (action === 'like') {
+        // 更新收藏状态和热度
+        userInfo.userHot += 3;
         this.setData({
-          isSuccess: true, 
-          successReason: '收藏成功喵(〃∀〃)'
-        });
-        setTimeout(() => {
-            this.setData({ isSuccess: false });
-        }, 500);
-  
-        this.setData({
+          isSuccess: true,
+          successReason: '收藏成功喵(〃∀〃)',
           'detailData.Liked': true,
-          'detailData.LikeNum': this.data.detailData.LikeNum + 1,
+          'detailData.LikeNum': this.data.detailData.LikeNum + 1
         });
       } else {
+        // 取消收藏，减少热度
+        userInfo.userHot -= 3;
         this.setData({
-          isSuccess: true, 
-          successReason: '取消收藏成功喵(〃∀〃)'
-        });
-        setTimeout(() => {
-            this.setData({ isSuccess: false });
-        }, 500);
-  
-        this.setData({
+          isSuccess: true,
+          successReason: '取消收藏成功喵(〃∀〃)',
           'detailData.Liked': false,
-          'detailData.LikeNum': this.data.detailData.LikeNum - 1,
+          'detailData.LikeNum': this.data.detailData.LikeNum - 1
         });
       }
+  
+      // 更新缓存
+      wx.setStorageSync('userInfo', userInfo);
+      setTimeout(() => {
+        this.setData({ isSuccess: false });
+      }, 500);
     } catch (error) {
       console.error('收藏操作失败:', error);
       this.setData({
-        isFail: true, 
+        isFail: true,
         failReason: '信号飞到三次元了'
       });
       setTimeout(() => {
-          this.setData({ isSuccess: false });
+        this.setData({ isFail: false });
       }, 500);
     }
   },

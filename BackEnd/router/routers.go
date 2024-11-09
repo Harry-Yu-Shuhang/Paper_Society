@@ -19,6 +19,8 @@ func Router() *gin.Engine {
 	user := r.Group("/user")
 	{
 		user.POST("/login", controllers.UserController{}.CreateUserInfo)
+		user.GET("/ranking", controllers.UserController{}.GetUserRanking)
+		user.GET("/favorites", controllers.UserController{}.GetUserFavorites)
 	}
 
 	girls := r.Group("/girls")

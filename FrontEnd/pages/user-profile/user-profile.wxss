@@ -1,26 +1,15 @@
-/* 页面容器，背景填充整个屏幕 */
-.page-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #f5f5f5;
-  min-height: 100vh; /* 全屏高度 */
-  padding: 0; /* 去除顶部填充 */
-}
-
-/* 用户信息卡片 */
 .user-settings {
   display: flex;
   flex-direction: column;
   align-items: flex-start; /* 整体左对齐 */
   width: 100%; /* 填满页面宽度 */
-  background-color: #ffffff;
+  background-color: #edf2f7;
   border-radius: 8px;
-  padding: 20rpx;
   padding-left: 20rpx; /* 统一左边距 */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
   margin-top: 0; /* 顶部无间隙 */
-  min-height: 100vh; /* 全屏高度 */
+  flex-grow: 1; /* 使容器在页面中扩展 */
+  min-height: 100vh; /* 保证填充满整个页面高度 */
 }
 
 .user-info {
@@ -30,6 +19,7 @@
   margin-bottom: 20rpx;
   width: 100%;
   margin-left: 30rpx;
+  margin-top: 25rpx;
 }
 
 .avatar {
@@ -114,20 +104,112 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 25px;
   font-weight: bold;
   color: #333;
   text-align: left;
-  width: 100%;
+  margin-left: 50rpx;
+  margin-top: 10rpx;
+}
+
+.gongzhonghao{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   margin-left: 50rpx;
 }
 
-.tougao-button{
-  margin-right: 55rpx;
-  margin-bottom: 10rpx;
+.gongzhonghao-button{
+  margin-left: 30rpx;
+}
+
+
+/* 现有排行榜样式 */
+.leaderboard__profiles {
+  /* background-color: #fff; */
+  border-radius: 0 0 12rpx 12rpx;
+  padding: 30rpx 30rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  min-width: 650rpx;
+}
+
+.leaderboard__profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #fff;
+  border-radius: 12rpx;
+  box-shadow: 0 5rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard__picture {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  box-shadow: 0 0 0 20rpx #ebeef3, 0 0 0 44rpx #f3f4f6;
+  object-fit: cover;
+}
+
+.leaderboard {
+  max-width: 100%;
+  width: 100%;
+  border-radius: 12rpx;
+  box-shadow: 0 0 80rpx -20rpx rgba(0, 0, 0, 0.4);
+  overflow-x: hidden; /* 禁止横向滚动 */
+}
+
+.leaderboard__profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  overflow: hidden;
+  border-radius: 20rpx;
+  box-shadow: 0 10rpx 14rpx -2rpx rgba(51, 51, 51, 0.23);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.7, 0.98, 0.86, 0.98), box-shadow 0.25s cubic-bezier(0.7, 0.98, 0.86, 0.98);
+  background-color: #F2F5FA;
+}
+
+.leaderboard__profile:hover {
+  transform: scale(1.2);
+  box-shadow: 0 18rpx 94rpx 22rpx rgba(51, 51, 51, 0.18);
+}
+
+.leaderboard__name {
+  color: #979cb0;
+  font-weight: 600;
+  font-size: 40rpx;
+  letter-spacing: 1.28rpx;
+  margin-left: 24rpx;
+}
+
+.leaderboard__value {
+  color: #35d8ac;
+  font-weight: 700;
+  font-size:  60rpx;
+  text-align: center;
+  width: auto; /* 调整为自动宽度 */
+  white-space: nowrap; /* 防止文字换行 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  letter-spacing: 2px;
+}
+
+body {
+  margin: 0;
+  background-color: #eaeaea;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: 'Source Sans Pro', sans-serif;
 }

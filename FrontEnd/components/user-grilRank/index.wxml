@@ -1,0 +1,27 @@
+<view class="container" bindtap="onGoToDetail">
+  <!-- 角色图片 -->
+  <van-image 
+    class="poster"
+    width="200rpx"
+    height="200rpx"
+    src="{{girl.images.large}}"
+    fit="cover"
+  />
+
+  <!-- 角色名称 -->
+  <text class="name">{{girl.title}}</text>
+
+  <!-- 评分组件 -->
+  <view class="rate-container">
+    <van-rate
+      value="{{ratingValue}}"
+      allow-half
+      void-icon="star"
+      void-color="#eee"
+      size="12"
+      gutter="1"
+      color="#DDA0DD"
+      bind:change="onRateChange"
+    />
+  </view>
+</view>

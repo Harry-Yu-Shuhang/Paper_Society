@@ -15,4 +15,5 @@ type UserInfo struct { //结构体也不能改名 映射到user_infos表里面
 	AvatarUrl  string // 映射到 user_avatar 列
 	LoginTime  int64  // 映射到 login_time 列,存储unix时间戳
 	CreateTime int64  // 映射到 create_time 列,存储unix时间戳
+	UserHot    int
 }

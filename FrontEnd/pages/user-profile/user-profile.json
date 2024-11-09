@@ -1,6 +1,9 @@
 {
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index",
-    "van-button": "@vant/weapp/button/index"
-  }
+    "van-button": "@vant/weapp/button/index",
+    "fail-window":"/components/fail-window/index",
+    "success-window":"/components/success-window/index"
+  },
+  "enablePullDownRefresh": true
 }

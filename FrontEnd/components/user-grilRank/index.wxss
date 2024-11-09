@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 210rpx;
+  cursor: pointer; /* 增加点击手势指针 */
+}
+
+.poster {
+  margin-bottom: 15rpx;
+}
+
+/* 过长的名称自动省略 */
+.name {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  word-break: break-all;
+  font-size: 30rpx;
+  color: #2f4248;
+}
+
+.rate-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}

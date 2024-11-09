@@ -18,12 +18,8 @@ func (u UpdateInfosController) InfosUpdate(c *gin.Context) {
 			CardCount int    `json:"cardCount"`
 			Nickname  string `json:"nickName"`
 			AvatarUrl string `json:"avatarUrl"`
+			UserHot   int    `json:"userHot"`
 		} `json:"userInfo"`
-		// DetailData struct {
-		// 	ID      int `json:"id"`
-		// 	CardNum int `json:"cardNum"`
-		// 	LikeNum int `json:"likeNum"`
-		// } `json:"detailData"`
 	}
 
 	// 解析请求体中的 JSON 数据
@@ -33,17 +29,12 @@ func (u UpdateInfosController) InfosUpdate(c *gin.Context) {
 		return
 	}
 
-	// // 检查 UserID 和 DetailData.ID 是否有效
-	// if request.UserInfo.UserID == 0 || request.DetailData.ID == 0 {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UserID or DetailData ID"})
-	// 	return
-	// }
-
 	// 更新用户基本信息
 	userUpdateData := map[string]interface{}{
 		"card_count": request.UserInfo.CardCount,
 		"nick_name":  request.UserInfo.Nickname,
 		"avatar_url": request.UserInfo.AvatarUrl,
+		"user_hot":   request.UserInfo.UserHot,
 	}
 	if err := dao.Db.Table("user_infos").
 		Where("id = ?", request.UserInfo.UserID).

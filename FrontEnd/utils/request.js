@@ -82,7 +82,6 @@ function updateCardRecord(userId, girlId) {
 function updateInfos(userInfo) {
   return sendRequest('/update/userinfos', 'POST', {
     userInfo: userInfo, // 用户信息
-    // detailData: detailData // 详细数据
   });
 }
 
@@ -110,6 +109,15 @@ function updateRateRecords(userId, girlId, rating) {
   });
 }
 
+// 获取超过的用户百分比
+function fetchUserRanking(userId) {
+  return sendRequest(`/user/ranking?user_id=${userId}`, 'GET');
+}
+
+// 获取用户收藏的角色列表
+function fetchUserFavorites(userId) {
+  return sendRequest(`/user/favorites?user_id=${userId}`, 'GET');
+}
 
 export {
   sendUserInfo,
@@ -125,4 +133,6 @@ export {
   increaseViews,
   updateLikeRecords,
   updateRateRecords,
+  fetchUserRanking,
+  fetchUserFavorites,
 };

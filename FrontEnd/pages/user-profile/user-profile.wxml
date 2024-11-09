@@ -1,52 +1,75 @@
-<view class="page-container">
-  <!-- 用户信息卡片 -->
-  <view class="user-settings">
-    <view class="user-info">
-      <image class="avatar" src="{{avatarUrl}}" />
-      <view class="user-details">
-        <text class="username">{{userName}}</text>
-        <text class="join-days">{{joinDateString}} 加入纸片社</text>
-        <text class="join-days">今天是你加入纸片社的第{{daysJoined}}天</text>
-      </view>
+<!-- 加载成功/失败组件 -->
+<success-window wx:if="{{isSuccess}}" />
+<fail-window wx:if="{{isFail}}" text="{{failReason}}" />
+
+<!-- 用户信息卡片 -->
+<view class="user-settings">
+  <view class="user-info">
+    <image class="avatar" src="{{avatarUrl}}" />
+    <view class="user-details">
+      <text class="username">{{userName}}</text>
+      <text class="join-days">{{joinDateString}} 加入纸片社</text>
+      <text class="join-days">今天是你加入纸片社的第{{daysJoined}}天</text>
+    </view>
+  </view>
+
+  <!-- 分割线 -->
+  <view class="divider"></view>
+
+  <!-- 用户统计信息 -->
+  <view class="user-stats">
+    <!-- 签到卡统计 -->
+    <view class="stat-item">
+      <text class="stat-title">签到卡</text>
+      <van-icon 
+        name="card"
+        color='#ffa2e1'  
+        size="22" 
+        class="stat-icon"
+      />
+      <text class="stat-value">{{cardCount}}</text>
+      <text class="stat-text">{{computedCardText}}</text>
+      <text class="stat-over-user">(超越{{cardPercent}}%的用户)</text>
     </view>
 
-    <!-- 分割线 -->
-    <view class="divider"></view>
-
-    <!-- 用户统计信息 -->
-    <view class="user-stats">
-      <view class="stat-item">
-        <text class="stat-title">签到卡</text>
-        <van-icon 
-          name="card"
-          color='#ffa2e1'  
-          size="22" 
-          class="stat-icon"
-        />
-        <text class="stat-value">{{cardCount}}</text>
-        <text class="stat-text">一毛不拔</text>
-        <text class="stat-over-user">(超越100%的用户)</text>
-      </view>
-      <view class="stat-item">
-        <text class="stat-title">贡献热度</text>
-        <van-icon 
+    <!-- 热度贡献统计 -->
+    <view class="stat-item">
+      <text class="stat-title">贡献热度</text>
+      <van-icon 
         name="fire" 
         color="#FF7F50" 
         class="stat-icon"
         size="16"/>
-        <text class="stat-value">{{heatContribution}}</text>
-        <text class="stat-text">不遗余力</text>
-        <text class="stat-over-user">(超越100%的用户)</text>
-      </view>
-    </view>
-
-    <!-- 分割线 -->
-    <view class="divider"></view>
-
-    <!-- 我的收藏标题 -->
-    <view class="like-line">
-      <text class="section-title">我的收藏(0)</text>
-      <van-button round plain hairline type="info" size="mini" class="tougao-button">我要投稿</van-button>
+      <text class="stat-value">{{heatContribution}}</text>
+      <text class="stat-text">{{computedHotText}}</text>
+      <text class="stat-over-user">(超越{{hotPercent}}%的用户)</text>
     </view>
   </view>
+
+  <!-- 分割线 -->
+  <view class="divider"></view>
+
+  <view class="gongzhonghao">
+    <text>投稿/技术交流/使用教程，请</text>
+    <van-button round plain hairline type="info" size="small" class="gongzhonghao-button">前往公众号</van-button>
+  </view>
+
+  <!-- 分割线 -->
+  <view class="divider"></view>
+
+  <!-- 我的收藏标题 -->
+  <view class="like-line">
+    <text class="section-title">我的收藏({{favoritesCount}})</text>
+  </view>
+  <!-- 使用 recycle-view 渲染用户收藏的角色 -->
+    <!-- 使用 recycle-view 渲染排行榜 -->
+    <recycle-view class="leaderboard__profiles" bindscrolltolower="onScrollToLower" scroll-y="{{true}}" scroll-top="{{scrollTop}}">
+    <recycle-item wx:for="{{userFavorites}}" wx:key="id">
+      <view class="leaderboard__profile" bind:tap="onFavoriteTap" data-id="{{item.girl_id}}">
+        <image src="{{item.avatarSrc}}" alt="{{item.name}}" class="leaderboard__picture" lazy-load></image>
+        <text class="leaderboard__name">{{item.name}}</text>
+        <text class="leaderboard__value">{{item.daysAgo}}天</text>
+      </view>
+    </recycle-item>
+  </recycle-view>
 </view>
