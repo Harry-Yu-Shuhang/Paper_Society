@@ -106,7 +106,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right:60rpx;
+  margin-right:30rpx;
 }
 
 body {
