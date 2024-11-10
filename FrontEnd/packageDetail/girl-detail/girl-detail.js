@@ -452,6 +452,11 @@ Page({
           }
         }).catch((error) => {
           console.error('获取角色详情失败:', error);
+          this.setData({isFail:true})
+          // 800毫秒后关闭弹窗
+          setTimeout(() => {
+            this.setData({isFail: false });
+          }, 800);
         });
       }
     } else {

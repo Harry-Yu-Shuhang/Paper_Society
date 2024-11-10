@@ -76,7 +76,7 @@ Page({
     try {
       // Calculate offset and the next batch of IDs
       const offset = this.data.currentCount;
-      const nextBatchIds = this.data.idListCache.slice(offset, offset + 30);//一次获取30个
+      const nextBatchIds = this.data.idListCache.slice(offset, offset + 10000);//一次获取10000个
   
       // Check if nextBatchIds is a valid array
       if (!Array.isArray(nextBatchIds) || nextBatchIds.length === 0) {
@@ -151,10 +151,6 @@ Page({
       });
     } else {
       this.fetchRankData('hotRank');
-    }
-    // 预加载评分排行榜数据以便切换时无需再次加载
-    if (!scoreRankCache) {
-      this.fetchRankData('scoreRank');
     }
   },
 

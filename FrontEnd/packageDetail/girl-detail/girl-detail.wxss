@@ -188,24 +188,25 @@
   flex-direction: row;
   align-items: center;
   margin-left:5rpx;
-  margin-bottom: 5rpx;
+  margin-bottom: 2rpx;
   color:#444;
   font-size: 20rpx;
 }
 
 .fire-num{
-  margin-top: 6rpx;
+  margin-top: 5rpx;
   margin-left: 2rpx;
 }
 
 .rate_text{
   color:#444;
-  letter-spacing: 2px;
-  font-size: 40rpx;
+  letter-spacing: 1px;
+  font-size: 20px;
+  white-space: nowrap; /* 强制不换行 */
 }
 
 .rate_bar{
-  margin-right: 50rpx;
+  margin-right: 10rpx;
   margin-bottom: 6rpx;
 }
 
@@ -255,11 +256,6 @@
   font-size: 22rpx;
   margin-top: 5rpx;
   margin-right: 10rpx;
-}
-
-.fire-num-first{
-  margin-top: 6rpx;
-  margin-left: 5rpx;
 }
 
 .my-first-rate{

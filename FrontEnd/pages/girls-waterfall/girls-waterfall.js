@@ -102,10 +102,10 @@ Page({
           isFail: true,
           failReason:default_fail_reason,
          });
-      }, 500);
+      }, 0);
       setTimeout(() => {
         this.setData({ isFail: false });
-      }, 1200);
+      }, 500);
       return [];
     }
   },

@@ -114,6 +114,20 @@
   text-align: left;
   margin-left: 50rpx;
   margin-top: 10rpx;
+  width:458rpx;
+}
+
+.sort{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top:18rpx;
+}
+
+.sort-text{
+  color: #777;
+  font-size: 14px;
+  margin-left: 3rpx;
 }
 
 .gongzhonghao{
@@ -123,8 +137,8 @@
   margin-left: 50rpx;
 }
 
-.gongzhonghao-button{
-  margin-left: 30rpx;
+.instruction{
+  width:460rpx;
 }
 
 

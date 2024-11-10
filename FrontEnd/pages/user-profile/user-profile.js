@@ -21,6 +21,7 @@ Page({
     isFail: false,
     failReason: '信号飞到三次元了',
     isSuccess:false,
+    isDescending: false, // 控制排序的布尔变量,默认新欢优先
   },
 
   async getUserRanking() {
@@ -48,9 +49,37 @@ Page({
         computedHotText
       });
     } catch (error) {
-      console.error('获取用户排名失败:', error);
-      
+      console.error('获取用户排名失败:', error);    
     }
+  },
+
+    /**
+   * 切换排序顺序
+   */
+  toggleSortOrder() {
+    this.setData({ isDescending: !this.data.isDescending });
+    this.sortFavorites();
+  },
+
+  /**
+   * 根据排序状态对收藏列表进行排序
+   */
+  sortFavorites() {
+    const sortedFavorites = [...this.data.userFavorites];
+    
+    // 根据 isDescending 变量排序
+    sortedFavorites.sort((a, b) => {
+      if (this.data.isDescending) {
+        return a.created_at - b.created_at; // 从旧到新
+      } else {
+        return b.created_at - a.created_at; // 从新到旧
+      }
+    });
+
+    // 更新收藏列表
+    this.setData({
+      userFavorites: sortedFavorites
+    });
   },
 
     /**
@@ -66,21 +95,26 @@ Page({
     }
   
     try {
-      // 一次性获取用户所有收藏的角色
       const response = await fetchUserFavorites(userId);
       const { favorites: favoritesList } = response;
-      //console.log("favoritesList是:", favoritesList);
   
-      // 计算每条收藏的天数
       const updatedFavoritesList = favoritesList.map(item => ({
         ...item,
         daysAgo: this.calculateDaysSince(item.created_at)
       }));
   
-      // 更新收藏列表
+      // 根据排序状态排序
+      updatedFavoritesList.sort((a, b) => {
+        if (this.data.isDescending) {
+          return a.created_at - b.created_at;
+        } else {
+          return b.created_at - a.created_at;
+        }
+      });
+  
       this.setData({
         userFavorites: updatedFavoritesList,
-        favoritesCount: updatedFavoritesList.length,
+        favoritesCount: updatedFavoritesList.length
       });
     } catch (error) {
       console.error('获取用户收藏失败:', error);

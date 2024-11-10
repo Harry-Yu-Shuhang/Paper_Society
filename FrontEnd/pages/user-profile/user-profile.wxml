@@ -50,8 +50,8 @@
   <view class="divider"></view>
 
   <view class="gongzhonghao">
-    <text>投稿/技术交流/使用教程，请</text>
-    <van-button round plain hairline type="info" size="small" class="gongzhonghao-button">前往公众号</van-button>
+    <text class="instruction">投稿/技术交流/使用教程，请</text>
+    <van-button round plain hairline type="info" size="small">前往公众号</van-button>
   </view>
 
   <!-- 分割线 -->
@@ -60,6 +60,10 @@
   <!-- 我的收藏标题 -->
   <view class="like-line">
     <text class="section-title">我的收藏({{favoritesCount}})</text>
+    <view class="sort" bindtap="toggleSortOrder">
+      <van-icon name="{{isDescending ? 'descending' : 'ascending'}}" size="20px" color="#777"/>
+      <text class="sort-text">{{isDescending ? '旧爱优先' : '新欢优先'}}</text>
+    </view>
   </view>
   <!-- 使用 recycle-view 渲染用户收藏的角色 -->
     <!-- 使用 recycle-view 渲染排行榜 -->

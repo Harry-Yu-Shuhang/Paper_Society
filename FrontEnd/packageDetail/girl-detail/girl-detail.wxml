@@ -100,7 +100,7 @@
               <van-icon name="fire" color="#FF7F50" class="title-icon" size="11"/>
               <view class="fire-text">
                 <text>+</text>
-                <text class="fire-num-first">1</text>
+                <text class="fire-num">1</text>
               </view>
             </view>
           </view>
