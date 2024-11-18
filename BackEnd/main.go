@@ -7,7 +7,7 @@ import (
 func main() {
 	//封装路由
 	r := router.Router()
-	r.Run(":8080")
+	r.Run(":80")
 }
 
 //defer recover panic 异常处理

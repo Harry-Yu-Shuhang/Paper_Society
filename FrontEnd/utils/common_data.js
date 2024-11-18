@@ -1,4 +1,4 @@
-const baseURL = "http://127.0.0.1:8080"; // 替换成你的后端服务器地址
+const baseURL = "http://127.0.0.1:80"; // 替换成你的后端服务器地址
 const user_login = '/user/login';
 const girls_rank_hot = '/girls/rank/hot';
 const girls_rank_score = '/girls/rank/score';

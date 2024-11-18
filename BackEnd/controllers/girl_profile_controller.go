@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"paper_community/dao"
 	"paper_community/models"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,34 +23,89 @@ func GetGirlInfoByID(gid string) (models.Girl, error) {
 }
 
 // GetStatisticsByGirlID 查询女孩的排名、总人数以及统计数据
-func GetStatisticsByGirlID(girl models.Girl) (hotRank, rateRank, totalGirls int64, err error) {
+func GetStatisticsByGirlID(girl models.Girl) (hotRank, rateRank, totalGirls int64, hotOver int64, rateOver int64, err error) {
 	// 查询总人数
 	dao.Db.Table("girls").Count(&totalGirls)
 
-	// 查询 HotRank 使用窗口函数 RANK() 排名
-	queryHotRank := `
-		SELECT hot_rank FROM (
-			SELECT id, RANK() OVER (ORDER BY hot DESC) AS hot_rank
-			FROM girls
-		) ranked_girls WHERE id = ?
-	`
-	err = dao.Db.Raw(queryHotRank, girl.ID).Scan(&hotRank).Error
+	var queryHotRank, queryRateRank string
+
+	// 查询比当前用户热度低的数量
+	err = dao.Db.Table("girls").
+		Where("hot < ?", girl.Hot).
+		Count(&hotOver).Error
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("HotRank 查询错误: %v", err)
+		return 0, 0, 0, 0, 0, fmt.Errorf("HotRank 查询错误: %v", err)
 	}
 
-	// 查询 RateRank 使用窗口函数 RANK() 排名
-	queryRateRank := `
-		SELECT rate_rank FROM (
-			SELECT id, RANK() OVER (ORDER BY average_rate DESC) AS rate_rank
-			FROM girls
-		) ranked_girls WHERE id = ?
-	`
+	// 查询比当前用户评分低的数量
+	err = dao.Db.Table("girls").
+		Where("average_rate < ?", girl.AverageRate).
+		Count(&rateOver).Error
+	if err != nil {
+		return 0, 0, 0, 0, 0, fmt.Errorf("RateRank 查询错误: %v", err)
+	}
+
+	//根据 MySQL 版本选择查询语句
+	if strings.HasPrefix(dao.MySQLVersion, "8") {
+		// MySQL 8.0 及以上版本使用 RANK() 窗口函数
+		queryHotRank = `
+			SELECT hot_rank FROM (
+				SELECT id, RANK() OVER (ORDER BY hot DESC) AS hot_rank
+				FROM girls
+			) ranked_girls WHERE id = ?
+		`
+
+		queryRateRank = `
+			SELECT rate_rank FROM (
+				SELECT id, RANK() OVER (ORDER BY average_rate DESC) AS rate_rank
+				FROM girls
+			) ranked_girls WHERE id = ?
+		`
+	} else {
+		// MySQL 5.7 及以下版本使用手动排名
+		queryHotRank = `
+			SELECT hot_rank FROM (
+				SELECT id,
+					   @rank := IF(@prev_hot = hot, @rank, @rank + 1) AS hot_rank,
+					   @prev_hot := hot
+				FROM (
+					SELECT id, hot
+					FROM girls
+					ORDER BY hot DESC
+				) AS sorted_girls,
+				(SELECT @rank := 0, @prev_hot := NULL) AS vars
+			) ranked_girls WHERE id = ?
+		`
+
+		queryRateRank = `
+			SELECT rate_rank FROM (
+				SELECT id,
+					   @rank := IF(@prev_rate = average_rate, @rank, @rank + 1) AS rate_rank,
+					   @prev_rate := average_rate
+				FROM (
+					SELECT id, average_rate
+					FROM girls
+					ORDER BY average_rate DESC
+				) AS sorted_girls,
+				(SELECT @rank := 0, @prev_rate := NULL) AS vars
+			) ranked_girls WHERE id = ?
+		`
+	}
+
+	//查询 HotRank
+	err = dao.Db.Raw(queryHotRank, girl.ID).Scan(&hotRank).Error
+	if err != nil {
+		return 0, 0, 0, 0, 0, fmt.Errorf("HotRank 查询错误: %v", err)
+	}
+
+	//查询 RateRank
 	err = dao.Db.Raw(queryRateRank, girl.ID).Scan(&rateRank).Error
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("RateRank 查询错误: %v", err)
+		return 0, 0, 0, 0, 0, fmt.Errorf("RateRank 查询错误: %v", err)
 	}
-	return hotRank, rateRank, totalGirls, nil
+
+	// return hotRank, rateRank, totalGirls, nil
+	return hotRank, rateRank, totalGirls, hotOver, rateOver, nil
 }
 
 // GetGirlStatistics 查询女孩的签到卡、收藏数和评分
@@ -70,7 +126,7 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 	var wg sync.WaitGroup
 	var girl models.Girl
 	var stats models.GirlStatistics
-	var hotRank, rateRank, totalGirls int64
+	var hotRank, rateRank, totalGirls, hotOver, rateOver int64
 	var voted, liked bool
 	var myRate int
 	var errGirl, errStats, errRank, errVoted, errLiked, errMyRate error
@@ -102,7 +158,7 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 	// 获取排名和总人数信息
 	go func() {
 		defer wg.Done()
-		hotRank, rateRank, totalGirls, errRank = GetStatisticsByGirlID(girl)
+		hotRank, rateRank, totalGirls, hotOver, rateOver, errRank = GetStatisticsByGirlID(girl)
 	}()
 
 	// 检查今天是否已投票
@@ -154,8 +210,8 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 	// 计算百分比
 	var firePercent, starPercent int64
 	if totalGirls > 0 {
-		firePercent = int64(float64(totalGirls-hotRank) / float64(totalGirls) * 100)
-		starPercent = int64(float64(totalGirls-rateRank) / float64(totalGirls) * 100)
+		firePercent = int64(float64(hotOver) / float64(totalGirls) * 100)
+		starPercent = int64(float64(rateOver) / float64(totalGirls) * 100)
 	}
 
 	// 构建返回的 GirlProfile 数据

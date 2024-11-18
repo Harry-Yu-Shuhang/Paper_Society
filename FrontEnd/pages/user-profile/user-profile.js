@@ -14,8 +14,8 @@ Page({
     heatContribution:0,
     cardPercent:0,
     hotPercent:0,
-    computedCardText:null,
-    computedHotText:null,
+    computedCardText:'正在计算',
+    computedHotText:'正在计算',
     userFavorites: [],
     favoritesCount: 0,
     isFail: false,
@@ -30,7 +30,7 @@ Page({
   
     if (!userId) {
       console.error('用户未登录');
-      return;
+      throw new Error('用户未登录');
     }
   
     try {
@@ -49,7 +49,8 @@ Page({
         computedHotText
       });
     } catch (error) {
-      console.error('获取用户排名失败:', error);    
+      console.error('获取用户排名失败:', error);   
+      throw error; // 继续向上抛出异常，以便外部捕获 
     }
   },
 
@@ -120,6 +121,7 @@ Page({
       console.error('获取用户收藏失败:', error);
       this.setData({ isFail: true });
       setTimeout(() => this.setData({ isFail: false }), 800);
+      throw error; // 继续向上抛出异常，以便外部捕获
     }
   },
 
@@ -240,11 +242,25 @@ Page({
   /**
    * 页面相关事件处理函数--监听用户下拉动作
    */
-  onPullDownRefresh() {
-    this.setData({ isSuccess: true });
-    this.onLoad();
+  async onPullDownRefresh() {
+    try {
+    await this.getUserRanking();
+    await this.loadUserFavorites();
+      // 如果加载成功，更新成功状态
+      this.setData({ isSuccess: true, isFail: false });
+    } catch (error) {
+      console.error('刷新失败:', error);
+      // 如果加载失败，设置失败状态
+      this.setData({ isFail: true, isSuccess: false });
+    }
+
+    // 停止下拉刷新动画
     wx.stopPullDownRefresh();
-    setTimeout(() => this.setData({ isSuccess: false }), 500);
+
+    // 在 500ms 后清除成功或失败状态提示
+    setTimeout(() => {
+      this.setData({ isSuccess: false, isFail: false });
+    }, 500);
   },
 
   /**

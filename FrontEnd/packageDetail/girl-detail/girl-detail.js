@@ -12,6 +12,8 @@ function initChart(canvas, width, height, dpr) {
   canvas.setChart(chart);
   // 从缓存中读取 detailData
   const detailData = wx.getStorageSync('detailData');
+  // 设置默认的平均分为 0 分
+  const averageRate = detailData && detailData.AverageRate ? detailData.AverageRate : 0;
   // 渐变色配置
   var gradientColors = [
     { offset: 0, color: '#00f' },    // 蓝色 (冷色)
@@ -20,7 +22,7 @@ function initChart(canvas, width, height, dpr) {
   // 优化后的配置项
   var option = {
     title: {
-      text: '平均分: ' + (detailData ? detailData.AverageRate : ''),
+      text: '平均分: ' + averageRate,
       left: 'center',          // 标题居中
       textStyle: {
         fontSize: 16,          // 标题字体大小
@@ -145,53 +147,59 @@ function initPieChart(canvas, width, height, dpr) {
     tooltip: {
       trigger: 'none'          // 禁用饼图点击后的提示框
     },
-    
     legend: {
-      orient: 'horizontal',    // 图例布局方向
-      left: 'center',          // 图例位置居中
-      bottom: '0%',            // 图例距离底部0%
+      orient: 'horizontal',
+      left: 'center',
+      bottom: '0%',
+      data: ['签到卡', '收藏'],
       textStyle: {
-        color: '#666'          // 图例文字颜色
+        color: '#666'
       },
-      selectedMode: false       // 禁用点击图例隐藏数据的功能
+      selectedMode: false
     },
     series: [
       {
         name: '签到卡与收藏',
         type: 'pie',
-        radius: ['40%', '70%'],   // 设置内外半径，形成环形图
+        radius: ['40%', '70%'],
         avoidLabelOverlap: false,
+        startAngle: 270, // 调整饼图起始角度
         label: {
-          show: false,            // 不显示标签文字
+          show: false,
           position: 'center'
         },
         emphasis: {
           label: {
-            show: true,           // 鼠标悬停或点击时显示标签
+            show: true,
             fontSize: '16',
             fontWeight: 'bold',
-            // 修改formatter，显示数值和百分比两行
             formatter: function (params) {
-              return `${params.percent}%`; //显示和百分比
+              const name = params.name;
+              const value = params.value;
+              const percent = params.percent;
+              
+              if (name === '签到卡') {
+                return `${value}张\n${percent}%`;
+              } else if (name === '收藏') {
+                return `${value}次\n${percent}%`;
+              }
             }
           },
           itemStyle: {
-            //shadowBlur: 20,       // 悬停时增强阴影效果
             shadowOffsetX: 0,
             shadowColor: 'rgba(0, 0, 0, 0.5)'
           }
         },
         labelLine: {
-          show: false             // 不显示指引线
+          show: false
         },
         data: [
           { value: detailData ? detailData.CardNum : 0, name: '签到卡' },
-          { value: detailData ? detailData.LikeNum : 0, name: '收藏' }     // 数据2：收藏
+          { value: detailData ? detailData.LikeNum : 0, name: '收藏' }
         ],
         itemStyle: {
           color: function (params) {
-            // 设置签到卡和收藏的颜色
-            const colorList = ['#ffa2e1', '#E74C3C'];  // 签到卡：粉色，收藏：红色
+            const colorList = ['#ffa2e1', '#E74C3C']; // 签到卡：粉色，收藏：红色
             return colorList[params.dataIndex];
           }
         }
@@ -475,7 +483,7 @@ Page({
     if (this.chart) {
       this.chart.setOption({
         series: [{ data: detailData.RateNum || [] }],
-        title: { text: '平均分: ' + (detailData.AverageRate || '') }
+        title: { text: '平均分: ' + (detailData.AverageRate || 0) }
       });
     }
     if (this.pieChart) {

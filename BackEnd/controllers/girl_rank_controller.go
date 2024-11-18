@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var MySQLVersion string
+
 type GirlRankController struct{}
 
 var photoStep = 10000 // 每次返回的数据条数
@@ -43,13 +45,32 @@ func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 
 	var rankedGirls []models.GirlRank
 
-	// 使用 RANK 来实现相同热度跳跃排名
-	query := `
-		SELECT id, avatar_src, name, hot, RANK() OVER (ORDER BY ` + orderField + ` DESC) AS hot_rank
-		FROM girls
-		ORDER BY ` + orderField + ` DESC
-		LIMIT ? OFFSET ?
-	`
+	// 根据 MySQL 版本选择查询语句
+	var query string
+	if strings.HasPrefix(dao.MySQLVersion, "8") {
+		// MySQL 8.0 及以上版本使用 RANK() 窗口函数
+		query = `
+			SELECT id, avatar_src, name, hot, 
+					RANK() OVER (ORDER BY ` + orderField + ` DESC) AS hot_rank
+			FROM girls
+			ORDER BY ` + orderField + ` DESC
+			LIMIT ? OFFSET ?
+		`
+	} else {
+		// MySQL 5.7 及以下版本使用变量手动排名
+		query = `
+			SELECT id, avatar_src, name, hot,
+				@rank := IF(@prev_hot = hot, @rank, @rank + 1) AS hot_rank,
+				@prev_hot := hot
+			FROM (
+				SELECT id, avatar_src, name, hot
+				FROM girls
+				ORDER BY hot DESC
+			) AS sorted_girls,
+			(SELECT @rank := 0, @prev_hot := NULL) AS vars
+			LIMIT ? OFFSET ?
+		`
+	}
 
 	if err := dao.Db.Raw(query, photoStep, offset).Scan(&rankedGirls).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})

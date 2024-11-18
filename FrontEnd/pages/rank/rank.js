@@ -159,30 +159,25 @@ Page({
     // 获取缓存中的 `detailData` 和 `userInfo`
     const detailData = wx.getStorageSync('detailData');
     const userInfo = wx.getStorageSync('userInfo');
+    try {
+      // 通过缓存中的 `ID` 和 z`userID` 发送请求更新详情数据
+      const updatedDetail = await fetchGirlDetail(detailData.ID, userInfo.userID);
 
-    if (detailData) {
-      try {
-        // 通过缓存中的 `ID` 和 z`userID` 发送请求更新详情数据
-        const updatedDetail = await fetchGirlDetail(detailData.ID, userInfo.userID);
-
-        // 更新缓存和页面数据
-        wx.setStorageSync('detailData', updatedDetail.data);
-        this.setData({
-          detailData: updatedDetail,
-        });
-      } catch (error) {
-        console.error("刷新失败:", error);
-        this.setData({
-          isFail: true,
-          failReason: '信号飞到三次元了',
-        });
-        setTimeout(() => {
-          this.setData({ isFail: false });
-        }, 800);
-      } 
-    } else {
-      console.log("缓存里没有角色数据，不需要更新");
-    }
-      wx.stopPullDownRefresh();
-    },
+      // 更新缓存和页面数据
+      wx.setStorageSync('detailData', updatedDetail.data);
+      this.setData({
+        detailData: updatedDetail,
+      });
+    } catch (error) {
+      console.error("刷新失败:", error);
+      this.setData({
+        isFail: true,
+        failReason: '信号飞到三次元了',
+      });
+      setTimeout(() => {
+        this.setData({ isFail: false });
+      }, 800);
+    } 
+    wx.stopPullDownRefresh();
+  },
 });
