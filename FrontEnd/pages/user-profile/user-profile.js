@@ -22,6 +22,7 @@ Page({
     failReason: '信号飞到三次元了',
     isSuccess:false,
     isDescending: false, // 控制排序的布尔变量,默认新欢优先
+    showGongzhonghao: false, // 控制弹窗显示
   },
 
   async getUserRanking() {
@@ -133,6 +134,20 @@ Page({
     const id = event.currentTarget.dataset.id;
     wx.navigateTo({
       url: `/packageDetail/girl-detail/girl-detail?gid=${id}`,
+    });
+  },
+
+  // 显示公众号弹窗
+  onShowGongzhonghao() {
+    this.setData({
+      showGongzhonghao: true,
+    });
+  },
+
+  // 关闭公众号弹窗
+  closeGongzhonghaoWindow() {
+    this.setData({
+      showGongzhonghao: false,
     });
   },
 

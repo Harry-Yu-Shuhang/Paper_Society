@@ -5,7 +5,8 @@
     "ec-canvas": "/components/ec-canvas/ec-canvas",
     "girl-profile": "/components/girl-profile/index",
     "fail-window":"/components/fail-window/index",
-    "success-window":"/components/success-window/index"
+    "success-window":"/components/success-window/index",
+    "van-dialog": "@vant/weapp/dialog/index"
   },
   "enablePullDownRefresh": true
 }

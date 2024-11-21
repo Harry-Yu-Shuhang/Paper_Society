@@ -51,7 +51,24 @@
 
   <view class="gongzhonghao">
     <text class="instruction">投稿/技术交流/使用教程，请</text>
-    <van-button round plain hairline type="info" size="small">前往公众号</van-button>
+    <van-button round plain hairline type="info" size="small" bind:tap="onShowGongzhonghao">前往公众号</van-button>
+  </view>
+
+  <!-- 公众号弹窗 -->
+  <view wx:if="{{showGongzhonghao}}" class="gongzhonghao-window">
+    <view class="gongzhonghao-content">
+      <van-icon 
+        name="close" 
+        size="24px" 
+        class="close-icon" 
+        bindtap="closeGongzhonghaoWindow" 
+      />
+      <view class="text-section">
+        <text class="text-line">长按图片识别二维码</text>
+        <text class="text-line">关注纸片社公众号</text>
+      </view>
+      <image class="qrcode-image" src="/images/gongzhonghao.jpg" mode="aspectFit" />
+    </view>
   </view>
 
   <!-- 分割线 -->
