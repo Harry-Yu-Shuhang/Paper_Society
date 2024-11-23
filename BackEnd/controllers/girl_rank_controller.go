@@ -15,7 +15,7 @@ var MySQLVersion string
 
 type GirlRankController struct{}
 
-var photoStep = 10000 // 每次返回的数据条数
+var photoStep = 100 // 每次返回的数据条数
 
 // GetGirlsHotRank handles GET requests for the hot rank
 func (g GirlRankController) GetGirlsHotRank(c *gin.Context) {
@@ -51,7 +51,7 @@ func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 		// MySQL 8.0 及以上版本使用 RANK() 窗口函数
 		query = `
 			SELECT id, avatar_src, name, hot, 
-					RANK() OVER (ORDER BY ` + orderField + ` DESC) AS hot_rank
+				RANK() OVER (ORDER BY ` + orderField + ` DESC) AS hot_rank
 			FROM girls
 			ORDER BY ` + orderField + ` DESC
 			LIMIT ? OFFSET ?
@@ -65,7 +65,7 @@ func (g GirlRankController) fetchRankByType(c *gin.Context, orderField string) {
 			FROM (
 				SELECT id, avatar_src, name, hot
 				FROM girls
-				ORDER BY hot DESC
+				ORDER BY ` + orderField + ` DESC
 			) AS sorted_girls,
 			(SELECT @rank := 0, @prev_hot := NULL) AS vars
 			LIMIT ? OFFSET ?

@@ -118,3 +118,89 @@ body {
   height: 100vh;
   font-family: 'Source Sans Pro', sans-serif;
 }
+
+/* 新用户弹窗css */
+.newUserWindow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.newUserContent {
+  position: relative;
+  width: 90%;
+  max-width: 600rpx;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.close-icon {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  color: #333;
+  cursor: pointer;
+}
+
+.text-section {
+  margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.text-line {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.text-card {
+  font-size: 16px;
+  color: #333;
+  margin-left: 10rpx;
+}
+
+.acceptBonusButton{
+  margin-left: auto;
+}
+
+.modal-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-right: 30rpx;
+  border: 3px solid #fff;
+  min-width: 120rpx;
+  min-height: 120rpx;
+}
+
+.window-content{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.acceptBonus{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+/* 
+.qrcode-image {
+  width: 8cm;
+  height: 8cm;
+  border-radius: 8px;
+} */
+
+/* 公众号样式结束 */

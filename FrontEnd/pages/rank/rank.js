@@ -1,5 +1,19 @@
-import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail } from '../../utils/request';
+import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail, fetchWaterFallList } from '../../utils/request';
 let rankType = 'hotRank';
+
+// 预加载角色库数据
+async function preloadRankData() {
+  try {
+    // 预加载角色库数据
+    const waterfallResponse = await fetchWaterFallList({ renderedIds: [] });
+    if (waterfallResponse && waterfallResponse.data) {
+      wx.setStorageSync('initialGirlsData', waterfallResponse.data);
+    }
+    
+  } catch (error) {
+    console.error("Failed to preload data:", error);
+  }
+}
 
 Page({
   data: {
@@ -12,36 +26,117 @@ Page({
     isFail: false,
     failReason: '信号飞到三次元了',
     isSuccess: false,
+    isLoading:false,
+    showNewUserModal: false,  // 是否显示新用户弹窗
+    showDailySignModal: false, // 是否显示签到弹窗
+    windowAvatar: "/images/Paper_Society.jpg",         // 新用户头像
+    // userName:"新用户"
   },
+
+  // async fetchRankData(rankType, offset = 0, isRefresh = false) {
+  //   try {
+  //     if (offset === 0 && !isRefresh && this.data.fetchRankList.length > 0) return; // 避免重复请求
+      
+  //     if (isRefresh) {
+  //       this.setData({ hasMoreData: true });
+  //     }
+
+  //     // 根据 rankType 获取相应的排行榜数据
+  //     const response = rankType === 'hotRank' ? 
+  //       await fetchHotRankList(offset) : await fetchScoreRankList(offset);
+
+  //     const { data: newRankList, hasMoreData, idList } = response;
+
+  //     if (isRefresh || offset === 0) {
+  //       this.setData({
+  //         idListCache: idList,  // 缓存ID列表
+  //         fetchRankList: newRankList,
+  //         currentCount: newRankList.length,
+  //         hasMoreData,
+  //       });
+        
+  //       // 根据 rankType 缓存 ID 列表到本地存储
+  //       const cacheKey = rankType === 'hotRank' ? 'hotRankData' : 'scoreRankData';
+  //       wx.setStorageSync(cacheKey, {
+  //         idListCache: idList,
+  //         fetchRankList: newRankList,
+  //         hasMoreData
+  //       });
+  //     } else {
+  //       this.setData({
+  //         fetchRankList: [...this.data.fetchRankList, ...newRankList],
+  //         currentCount: offset + newRankList.length,
+  //         loading: false,
+  //         hasMoreData,
+  //       });
+  //     }
+
+  //     if (isRefresh) {
+  //       this.setData({ 
+  //         isSuccess: true,
+  //         isLoading:false
+  //        });
+  //       setTimeout(() => this.setData({ isSuccess: false }), 500);
+  //     }
+  //     setTimeout(() => this.setData({ loading: false }), 800);
+  //   } catch (error) {
+  //     console.error('获取排行榜数据失败:', error);
+  //     this.setData({ loading: false, isFail: true });
+  //     setTimeout(() => this.setData({ isFail: false }), 800);
+  //   }
+  // },
 
   async fetchRankData(rankType, offset = 0, isRefresh = false) {
     try {
       if (offset === 0 && !isRefresh && this.data.fetchRankList.length > 0) return; // 避免重复请求
-      
+  
       if (isRefresh) {
-        this.setData({ hasMoreData: true });
+        this.setData({ 
+          hasMoreData: true,
+          isLoading: true
+        });
       }
-
+  
+      // 定义一个变量标记是否超时
+      let isTimeout = false;
+      // 启动超时计时器，5秒后设置超时状态
+      const timeout = setTimeout(() => {
+        isTimeout = true;
+        if (isRefresh) {
+          this.setData({ 
+            isLoading: false, 
+            isFail: true,
+            failReason:'信号似乎不大好喵', 
+          });
+          setTimeout(() => this.setData({ isFail: false }), 500);
+        }
+        console.warn('刷新超时，停止请求响应');
+      }, 5000); // 超时时间 5 秒
+  
       // 根据 rankType 获取相应的排行榜数据
-      const response = rankType === 'hotRank' ? 
-        await fetchHotRankList(offset) : await fetchScoreRankList(offset);
-
+      const response = rankType === 'hotRank' ? await fetchHotRankList(offset) : await fetchScoreRankList(offset);
+      // 如果超时，直接退出，不处理响应结果
+      if (isTimeout) return;
+  
+      // 清除计时器
+      clearTimeout(timeout);
+  
       const { data: newRankList, hasMoreData, idList } = response;
-
+  
       if (isRefresh || offset === 0) {
         this.setData({
-          idListCache: idList,  // 缓存ID列表
+          idListCache: idList, // 缓存ID列表
           fetchRankList: newRankList,
           currentCount: newRankList.length,
           hasMoreData,
         });
-        
+  
         // 根据 rankType 缓存 ID 列表到本地存储
         const cacheKey = rankType === 'hotRank' ? 'hotRankData' : 'scoreRankData';
         wx.setStorageSync(cacheKey, {
           idListCache: idList,
           fetchRankList: newRankList,
-          hasMoreData
+          hasMoreData,
         });
       } else {
         this.setData({
@@ -51,15 +146,24 @@ Page({
           hasMoreData,
         });
       }
-
+  
       if (isRefresh) {
-        this.setData({ isSuccess: true });
+        this.setData({ 
+          isSuccess: true, 
+          isLoading: false 
+        });
         setTimeout(() => this.setData({ isSuccess: false }), 500);
       }
+  
       setTimeout(() => this.setData({ loading: false }), 800);
     } catch (error) {
       console.error('获取排行榜数据失败:', error);
-      this.setData({ loading: false, isFail: true });
+      clearTimeout(timeout); // 如果请求失败，也需要清除计时器
+      this.setData({ 
+        loading: false, 
+        isFail: true, 
+        isLoading: false 
+      });
       setTimeout(() => this.setData({ isFail: false }), 800);
     }
   },
@@ -76,7 +180,7 @@ Page({
     try {
       // Calculate offset and the next batch of IDs
       const offset = this.data.currentCount;
-      const nextBatchIds = this.data.idListCache.slice(offset, offset + 10000);//一次获取10000个
+      const nextBatchIds = this.data.idListCache.slice(offset, offset + 100);//一次获取100个
   
       // Check if nextBatchIds is a valid array
       if (!Array.isArray(nextBatchIds) || nextBatchIds.length === 0) {
@@ -122,25 +226,58 @@ Page({
     const cachedData = wx.getStorageSync(cacheKey);
 
     if (cachedData && cachedData.idListCache) {
-      this.setData({
-        activeTab: rankType,
-        idListCache: cachedData.idListCache,
-        fetchRankList: cachedData.fetchRankList,
-        currentCount: cachedData.fetchRankList.length,
-        hasMoreData: cachedData.hasMoreData,
-        loading: false,
-      });
+        // 如果缓存存在，直接加载缓存数据
+        this.setData({
+            activeTab: rankType,
+            idListCache: cachedData.idListCache,
+            fetchRankList: cachedData.fetchRankList,
+            currentCount: cachedData.fetchRankList.length,
+            hasMoreData: cachedData.hasMoreData,
+            loading: false, // 关闭骨架屏
+        });
     } else {
-      this.setData({ activeTab: rankType, currentCount: 0, fetchRankList: [], isRefresh: true });
-      this.fetchRankData(rankType);
+        // 如果缓存不存在，显示骨架屏并加载数据
+        this.setData({
+            activeTab: rankType,
+            currentCount: 0,
+            fetchRankList: [],
+            loading: true, // 显示骨架屏
+        });
+
+        this.fetchRankData(rankType).then(() => {
+            this.setData({ loading: false }); // 数据加载完成后关闭骨架屏
+        });
     }
   },
 
   onLoad() {
-    // 预加载热度排行榜
-    const hotRankCache = wx.getStorageSync('hotRankData');
-    const scoreRankCache = wx.getStorageSync('scoreRankData');
+    const userInfo = wx.getStorageSync('userInfo'); // 获取缓存中的用户信息
+    // this.setData({userName:userInfo.nickName})
 
+    if (userInfo) {
+      if (userInfo.isNewUser) {
+        // 设置新用户弹窗
+        this.setData({
+          showNewUserModal: true,
+        });
+        // 更新新用户状态
+        userInfo.isNewUser = false;
+        wx.setStorageSync('userInfo', userInfo);
+      } else if (!userInfo.isSameDay) {
+        // 设置每日签到弹窗
+        this.setData({
+          showDailySignModal: true,
+        });
+
+        // 更新签到状态
+        userInfo.isSameDay = true;
+        wx.setStorageSync('userInfo', userInfo);
+      }
+    }
+    // 加载排行榜数据或缓存
+    const hotRankCache = wx.getStorageSync('hotRankData');
+    const initialGirlsCache = wx.getStorageSync('initialGirlsData');
+  
     if (hotRankCache && hotRankCache.idListCache) {
       this.setData({
         idListCache: hotRankCache.idListCache,
@@ -152,9 +289,28 @@ Page({
     } else {
       this.fetchRankData('hotRank');
     }
+  
+    if (!initialGirlsCache) {
+      preloadRankData();
+    }
   },
 
+    // 关闭新用户弹窗,显示签到弹窗
+    closeNewUserModal() {
+      this.setData({ 
+          showNewUserModal: false,
+          showDailySignModal:true,
+       });
+    },
+  
+    // 关闭每日签到弹窗
+    closeDailySignModal() {
+      this.setData({ showDailySignModal: false });
+    },
+
   async onPullDownRefresh() {
+    wx.stopPullDownRefresh();
+    this.setData({isLoading:true})
     this.fetchRankData(this.data.activeTab, 0, true);
     // 获取缓存中的 `detailData` 和 `userInfo`
     const detailData = wx.getStorageSync('detailData');
@@ -178,6 +334,5 @@ Page({
         this.setData({ isFail: false });
       }, 800);
     } 
-    wx.stopPullDownRefresh();
   },
 });

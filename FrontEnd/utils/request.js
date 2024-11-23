@@ -6,7 +6,6 @@ import {
   girls_profile_waterfall,
   girls_profile_search,
   girls_detail_get,
-  check_card
 } from './common_data';
 
 // 通用请求函数，使用 async/await
@@ -73,7 +72,7 @@ function fetchGirlDetail(gid, userId) {
 
 // 更新签到卡记录
 function updateCardRecord(userId, girlId) {
-  return sendRequest(check_card, 'POST', { 
+  return sendRequest('/update/cardrecords', 'POST', { 
     user_id: Number(userId),
     girl_id: Number(girlId)
    });

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"paper_community/dao"
@@ -302,4 +303,107 @@ func updateAverageRate(girlID int) error {
 	return dao.Db.Table("girls").
 		Where("id = ?", girlID).
 		Update("average_rate", averageRate).Error
+}
+
+// UpdateTodayCardStatus 更新今天的签到卡状态
+func (g UpdateRecordsController) UpdateCardRecords(c *gin.Context) {
+	// 创建一个结构体来解析 JSON 请求体
+	var request struct {
+		UserID int `json:"user_id"`
+		GirlID int `json:"girl_id"`
+	}
+
+	// 使用 BindJSON 解析请求体中的 JSON 数据
+	if err := c.BindJSON(&request); err != nil {
+		fmt.Printf("JSON 解析错误: %v\n", err) // 打印错误信息
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	// 获取 user_id 和 girl_id
+	userID := request.UserID
+	girlID := request.GirlID
+
+	// 检查参数
+	if userID == 0 || girlID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id and girl_id are required"})
+		return
+	}
+
+	var count int64
+	startOfDay := time.Now().Truncate(24 * time.Hour).Unix()
+
+	// 检查今天是否已送过签到卡
+	err := dao.Db.Table("give_card_records").
+		Where("user_id = ? AND girl_id = ? AND given_at >= ?", userID, girlID, startOfDay).
+		Count(&count).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check card status"})
+		return
+	}
+
+	if count > 0 {
+		// 如果已送过签到卡
+		c.JSON(http.StatusOK, gin.H{"alreadyGiven": true})
+	} else {
+		// 如果未送过签到卡，使用 goroutine 并发插入新记录、更新 card_num 和 hot
+		var wg sync.WaitGroup
+		var insertErr, updateStatsErr, updateHotErr error
+
+		// 插入新记录
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			newRecord := models.GiveCardRecord{
+				UserID:  userID,
+				GirlID:  girlID,
+				GivenAt: startOfDay,
+			}
+			insertErr = dao.Db.Create(&newRecord).Error
+		}()
+
+		// 更新 girl_statistics 表中的 card_num
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			statsUpdate := models.GirlStatisticsUpdate{
+				CardNum: 1, // 增加的数量，可以更改为其他值
+			}
+			updateStatsErr = dao.Db.Table("girl_statistics").
+				Where("girl_id = ?", girlID).
+				Update("card_num", gorm.Expr("card_num + ?", statsUpdate.CardNum)).Error
+		}()
+
+		// 更新 girls 表中的 hot
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			girlUpdate := models.GirlUpdate{
+				Hot: 1, // 增加的热度
+			}
+			updateHotErr = dao.Db.Table("girls").
+				Where("id = ?", girlID).
+				Update("hot", gorm.Expr("hot + ?", girlUpdate.Hot)).Error
+		}()
+
+		// 等待所有 goroutine 完成
+		wg.Wait()
+
+		// 检查错误
+		if insertErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card status"})
+			return
+		}
+		if updateStatsErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update card count"})
+			return
+		}
+		if updateHotErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update hot count"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"alreadyGiven": false})
+	}
 }

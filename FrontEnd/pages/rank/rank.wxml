@@ -1,8 +1,8 @@
-<!-- 加载动画组件 -->
-<!-- <loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window> -->
 <!-- 加载成功/失败组件 -->
 <success-window wx:if="{{isSuccess}}" />
 <fail-window wx:if="{{isFail}}" text="{{failReason}}" />
+<!-- 加载动画组件，显示在scroll-view顶部 -->
+<loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
 
 <view class="leaderboard">
   <!-- Tabs 切换 -->
@@ -33,3 +33,69 @@
     </recycle-item>
   </recycle-view>
 </view>
+
+  <!-- 新用户弹窗 -->
+  <view wx:if="{{showNewUserModal}}" class="newUserWindow">
+    <view class="newUserContent">
+      <van-icon 
+        name="close" 
+        size="20px" 
+        class="close-icon" 
+        bindtap="closeNewUserModal" 
+      />
+      <view class="window-content">
+        <image class="modal-image" src="{{windowAvatar}}" />
+        <view class="text-section"> 
+          <text class="text-line">欢迎加入纸片社！</text>
+          <text class="text-line">看板娘给你准备了新人大礼包</text>
+          <view class="acceptBonus">
+            <van-icon 
+            name="card"
+            color='#ffa2e1'  
+            size="22" 
+            />
+            <text class="text-card">签到卡(3张)</text>
+            <van-button round plain type="info" size="small" bind:tap="closeNewUserModal" class="acceptBonusButton">开心收下</van-button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+    <!-- 签到弹窗 -->
+    <view wx:if="{{showDailySignModal}}" class="newUserWindow">
+    <view class="newUserContent">
+      <van-icon 
+        name="close" 
+        size="20px" 
+        class="close-icon" 
+        bindtap="closeDailySignModal" 
+      />
+      <view class="window-content">
+        <image class="modal-image" src="{{windowAvatar}}" />
+        <view class="text-section"> 
+          <text class="text-line">签到成功! 恭喜获得签到奖励</text>
+          <view class="acceptBonus">
+            <van-icon 
+            name="card"
+            color='#ffa2e1'  
+            size="22" 
+            />
+            <text class="text-card">签到卡(3张)</text>
+            <van-button round plain type="info" size="small" bind:tap="closeDailySignModal" class="acceptBonusButton">开心收下</van-button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+<!-- <block wx:if="{{showDailySignModal}}">
+  <view class="modal-overlay">
+    <view class="modal">
+      <van-icon name="close" size="24px" class="modal-close" bindtap="closeDailySignModal" />
+      <text class="modal-title">签到成功！</text>
+      <text class="modal-content">签到卡+3</text>
+      <text class="modal-content">确认</text>
+    </view>
+  </view>
+</block> -->

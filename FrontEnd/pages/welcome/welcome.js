@@ -28,20 +28,19 @@ function requestPromise(url, method, data = {}) {
   });
 }
 
-// 预加载角色库和排行榜数据
-async function preloadRankData() {
-  try {
-    // 预加载角色库数据
-    const waterfallResponse = await fetchWaterFallList({ renderedIds: [] });
-    if (waterfallResponse && waterfallResponse.data) {
-      wx.setStorageSync('initialGirlsData', waterfallResponse.data);
-    }
+// 预加载角色库数据
+// async function preloadRankData() {
+//   try {
+//     // 预加载角色库数据
+//     const waterfallResponse = await fetchWaterFallList({ renderedIds: [] });
+//     if (waterfallResponse && waterfallResponse.data) {
+//       wx.setStorageSync('initialGirlsData', waterfallResponse.data);
+//     }
     
-
-  } catch (error) {
-    console.error("Failed to preload data:", error);
-  }
-}
+//   } catch (error) {
+//     console.error("Failed to preload data:", error);
+//   }
+// }
 
 Page({
   data: {
@@ -152,16 +151,16 @@ Page({
         // 更新 userInfo 对象的属性而不重新赋值整个对象(因为userInfo是const)
         userInfo.userID = response.userID || userInfo.userID;
         userInfo.cardCount = response.cardCount ?? 0; // 如果未定义，默认为 0
-        userInfo.isNewUser = response.isNewUser || userInfo.isNewUser;
-        userInfo.isSameDay = response.isSameDay || userInfo.isSameDay;
+        userInfo.isNewUser = response.isNewUser !== undefined ? response.isNewUser : userInfo.isNewUser;
+        userInfo.isSameDay = response.isSameDay !== undefined ? response.isSameDay : userInfo.isSameDay;
         userInfo.nickName = response.nickName || userInfo.nickName;
         userInfo.avatarUrl = response.avatarUrl || userInfo.avatarUrl;
         userInfo.createTime = response.createTime || userInfo.createTime;
-        userInfo.userHot = response.userHot || userInfo.userHot;
+        userInfo.userHot = response.userHot?? 0; // 如果未定义，默认为 0;
         wx.setStorageSync('userInfo', userInfo);
         this.setData({ userInfo });   
         // 调用预加载数据函数
-        await preloadRankData();
+        // await preloadRankData();
       } else {
         console.error("Invalid response structure:", response);
       }
@@ -175,5 +174,6 @@ Page({
         url: '/pages/rank/rank',
       });
     }, delayTime);
+    
   },
 });

@@ -2,6 +2,9 @@
 <success-window wx:if="{{isSuccess}}" />
 <fail-window wx:if="{{isFail}}" text="{{failReason}}" />
 
+<!-- 加载动画组件，显示在scroll-view顶部 -->
+<loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
+
 <!-- 用户信息卡片 -->
 <view class="user-settings">
   <view class="user-info">
@@ -82,8 +85,9 @@
       <text class="sort-text">{{isDescending ? '旧爱优先' : '新欢优先'}}</text>
     </view>
   </view>
+
   <!-- 使用 recycle-view 渲染用户收藏的角色 -->
-    <!-- 使用 recycle-view 渲染排行榜 -->
+    <!-- 使用 recycle-view 渲染收藏夹 -->
     <recycle-view class="leaderboard__profiles" bindscrolltolower="onScrollToLower" scroll-y="{{true}}" scroll-top="{{scrollTop}}">
     <recycle-item wx:for="{{userFavorites}}" wx:key="id">
       <view class="leaderboard__profile" bind:tap="onFavoriteTap" data-id="{{item.girl_id}}">

@@ -3,7 +3,8 @@
     "van-icon": "@vant/weapp/icon/index",
     "van-button": "@vant/weapp/button/index",
     "fail-window":"/components/fail-window/index",
-    "success-window":"/components/success-window/index"
+    "success-window":"/components/success-window/index",
+    "loading-window":"/components/loading-window/index"
   },
   "enablePullDownRefresh": true
 }

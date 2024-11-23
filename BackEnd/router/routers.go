@@ -27,7 +27,6 @@ func Router() *gin.Engine {
 	{
 		girls.POST("/profile/waterfall", controllers.GirlWaterFallController{}.PostRandomGirls)
 		girls.GET("/profile/search", controllers.GirlWaterFallController{}.GetSearchGirls)
-		girls.POST("/profile/update-card", controllers.GirlProfileController{}.UpdateTodayCardStatus)
 		girls.GET("/rank/hot", controllers.GirlRankController{}.GetGirlsHotRank)
 		girls.GET("/rank/score", controllers.GirlRankController{}.GetGirlsScoreRank)
 		girls.GET("/getGirlDetail", controllers.GirlProfileController{}.GetGirlDetail)
@@ -39,6 +38,7 @@ func Router() *gin.Engine {
 		updates.POST("/userinfos", controllers.UpdateInfosController{}.InfosUpdate)
 		updates.POST("/likerecords", controllers.UpdateRecordsController{}.UpdateLikeRecords)
 		updates.POST("/raterecords", controllers.UpdateRecordsController{}.UpdateRateRecords)
+		updates.POST("/cardrecords", controllers.UpdateRecordsController{}.UpdateCardRecords)
 	}
 	return r
 }

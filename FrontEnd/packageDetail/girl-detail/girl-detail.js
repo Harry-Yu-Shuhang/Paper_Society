@@ -2,6 +2,8 @@ import * as echarts from '../../components/ec-canvas/echarts';
 
 import {fetchGirlDetail, updateCardRecord, updateInfos, increaseViews, updateLikeRecords, updateRateRecords} from '../../utils/request';
 
+import Dialog from '@vant/weapp/dialog/dialog';
+
 function initChart(canvas, width, height, dpr) {
   const chart = echarts.init(canvas, null, {
     width: width,
@@ -234,71 +236,110 @@ Page({
     isSuccess: false, // 成功弹窗状态
     isFail: false, // 失败弹窗状态
     failReason: '信号飞到三次元了', // 失败原因
-    successReason: '加载成功喵(〃∀〃)'//成功原因
+    successReason: '加载成功喵(〃∀〃)',//成功原因
+    isLoading: false, // 加载弹窗状态
+    updatedRating: null, // 新的评分，仅在必要时更新到后端
   },
+
+  // onChangeMyRate(event) {
+  //   const newRating = event.detail;
+  //   const currentRating = this.data.detailData.MyRate;
+
+  //   // 如果评分没有变化，不执行后续操作
+  //   if (newRating === currentRating) {
+  //     return;
+  //   }
+
+  //   // 更新评分
+  //   const updatedDetailData = { ...this.data.detailData, MyRate: newRating };
+  //   this.setData({
+  //     detailData: updatedDetailData,
+  //   });
+
+  //   // 获取用户信息和女孩的ID
+  //   const userInfo = wx.getStorageSync('userInfo');
+  //   const userId = userInfo ? userInfo.userID : null;
+  //   const girlId = this.data.gid;
+  //   this.setData({
+  //     isSuccess: true, 
+  //     successReason: '修改评分成功喵(〃∀〃)'
+  //   });
+  //   // 1秒后关闭弹窗
+  //   setTimeout(() => {
+  //     this.setData({ isSuccess: false });
+  //   }, 500);
+
+  //   // 向后端发送评分修改请求
+  //   const response = updateRateRecords(userId, girlId, newRating)
+  //     .then(() => {
+  //       // 如果是首次评分，增加热度
+  //       if (!currentRating) {
+  //         userInfo.userHot += 1;
+  //         wx.setStorageSync('userInfo', userInfo);
+  //       }
+  //       // 请求成功后，将更新的评分存入缓存
+  //       wx.setStorageSync('detailData', updatedDetailData);
+  //     })
+  //     .catch(error => {
+  //       console.error('评分修改失败:', error);
+  //       this.setData({
+  //         isFail: true, // 显示失败弹窗
+  //         failReason: '信号飞到三次元了'
+  //       });
+  //       // 1秒后关闭失败弹窗
+  //       setTimeout(() => {
+  //         this.setData({ isFail: false });
+  //       }, 500);
+  //     });
+  //     this.addRequestToQueue(response); // 添加到队列
+  // },
 
   onChangeMyRate(event) {
     const newRating = event.detail;
     const currentRating = this.data.detailData.MyRate;
-
+  
     // 如果评分没有变化，不执行后续操作
     if (newRating === currentRating) {
       return;
     }
-
-    // 更新评分
+    
+    const userInfo = wx.getStorageSync('userInfo');
+    //第一次评分，增加热度
+    if (!currentRating) {
+      userInfo.userHot += 1;
+      wx.setStorageSync('userInfo', userInfo);
+    }
+  
+    // 更新评分到 detailData 和 updatedRating
     const updatedDetailData = { ...this.data.detailData, MyRate: newRating };
     this.setData({
       detailData: updatedDetailData,
+      updatedRating: newRating, // 存储新的评分
     });
-
-    // 获取用户信息和女孩的ID
-    const userInfo = wx.getStorageSync('userInfo');
-    const userId = userInfo ? userInfo.userID : null;
-    const girlId = this.data.gid;
-
-    // 向后端发送评分修改请求
-    updateRateRecords(userId, girlId, newRating)
-      .then(() => {
-        // 如果是首次评分，增加热度
-        if (!currentRating) {
-          userInfo.userHot += 1;
-          wx.setStorageSync('userInfo', userInfo);
-        }
-        
-        // 请求成功后，将更新的评分存入缓存
-        wx.setStorageSync('detailData', updatedDetailData);
-        this.setData({
-          isSuccess: true, // 显示失败弹窗
-          successReason: '修改评分成功喵(〃∀〃)'
-        });
-        // 1秒后关闭失败弹窗
-        setTimeout(() => {
-          this.setData({ isSuccess: false });
-        }, 500);
-      })
-      .catch(error => {
-        console.error('评分修改失败:', error);
-        this.setData({
-          isFail: true, // 显示失败弹窗
-          failReason: '信号飞到三次元了'
-        });
-        // 1秒后关闭失败弹窗
-        setTimeout(() => {
-          this.setData({ isFail: false });
-        }, 500);
-      });
+  
+    this.setData({
+      isSuccess: true, 
+      successReason: '修改评分成功喵(〃∀〃)',
+    });
+  
+    // 1秒后关闭弹窗
+    setTimeout(() => {
+      this.setData({ isSuccess: false });
+    }, 500);
+  
+    // 将更新后的数据存入缓存
+    wx.setStorageSync('detailData', updatedDetailData);
   },
 
   async onCardIconTap() {
     const gid = this.data.gid; // 获取女孩ID
     const userInfo = wx.getStorageSync('userInfo'); // 先从缓存获取整个 userInfo 对象
     const userId = userInfo ? userInfo.userID : null; // 提取其中的 userID
+    const detailData = wx.getStorageSync('detailData'); // 获取缓存中的 detailData
 
     // 检查卡数量是否足够
     if (userInfo.cardCount <= 0) {
-      const detailData = wx.getStorageSync('detailData'); // 获取缓存中的 detailData
-        // 检查是否已经送过卡
+      // 检查是否已经送过卡
       if (detailData.Voted) {
         this.setData({
           isFail: true, // 显示失败弹窗
@@ -323,9 +364,7 @@ Page({
     }
   
     try {
-        // 发送 POST 请求检查是否已经送过签到卡
-        const response = await updateCardRecord(userId, gid);
-        if (response.alreadyGiven) {
+        if (detailData.Voted) {
           this.setData({
             isFail: true, // 显示失败弹窗
             failReason: '今天给她送过啦'
@@ -357,6 +396,7 @@ Page({
 
         wx.setStorageSync('userInfo', userInfo); // 更新缓存中的 userInfo
         wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
+        updateCardRecord(userId, gid)//最后发送请求给后台
     } catch (error) {
         console.error('签到卡请求失败:', error);
         this.setData({
@@ -370,55 +410,97 @@ Page({
   },
 
   async onLikeIconTap() {
-    const gid = wx.getStorageSync('detailData').ID;
+    const gid = wx.getStorageSync('detailData').ID; // 获取角色 ID
     const userInfo = wx.getStorageSync('userInfo');
     const userId = userInfo ? userInfo.userID : null;
+    const girlName = this.data.detailData.Name; // 动态获取角色名
   
     // 判断当前收藏状态
     const isLiked = this.data.detailData.Liked;
-    const action = isLiked ? 'unlike' : 'like';
   
-    try {
-      // 调用后端 API，执行收藏或取消收藏的操作
-      const response = await updateLikeRecords(userId, gid, action);
-  
-      if (action === 'like') {
+    if (isLiked) {
+      const beforeClose = (action) => {
+        return new Promise(async (resolve) => {
+          if (action === 'confirm') {
+            try {
+              // 更新收藏状态和热度
+              userInfo.userHot -= 3;
+              resolve(true); // 确保弹窗关闭
+              this.setData({
+                // isSuccess: true,
+                successReason: '取消收藏成功喵(〃∀〃)',
+                'detailData.Liked': false,
+                'detailData.LikeNum': this.data.detailData.LikeNum - 1,
+              });
+              // 成功后关闭弹窗
+              setTimeout(() => {
+                this.setData({ isSuccess: true, });
+              }, 500);
+              // 更新缓存
+              wx.setStorageSync('userInfo', userInfo);
+              wx.setStorageSync('detailData', this.data.detailData);
+              // 成功后关闭弹窗
+              setTimeout(() => {
+                this.setData({ isSuccess: false });
+              }, 1000);
+              //给后端发送请求
+              const response = await updateLikeRecords(userId, gid, 'unlike');
+            } catch (error) {
+              console.error('取消收藏失败:', error);
+              setTimeout(() => {
+                this.setData({
+                  isFail: true,
+                  failReason: '信号飞到三次元了',
+                });
+              },500);
+              setTimeout(() => {
+                this.setData({ isFail: false });
+              }, 1000);
+              resolve(true); // 确保弹窗关闭
+            }
+          } else {
+            resolve(true); // 用户取消操作时立即关闭弹窗
+          }
+        });
+      };
+      Dialog.confirm({
+        title: `确定要取消收藏 ${girlName} 吗？`, // 动态插入角色名
+        message: `收藏的天数会清空，一定要慎重哦(⋟﹏⋞)`,
+        beforeClose,
+      }).catch(() => {
+        console.log('取消收藏操作被用户中止');
+      });
+    } else {
+      // 收藏操作
+      try {
+        // const response = await updateLikeRecords(userId, gid, 'like');
         // 更新收藏状态和热度
         userInfo.userHot += 3;
         this.setData({
           isSuccess: true,
           successReason: '收藏成功喵(〃∀〃)',
           'detailData.Liked': true,
-          'detailData.LikeNum': this.data.detailData.LikeNum + 1
+          'detailData.LikeNum': this.data.detailData.LikeNum + 1,
         });
-      } else {
-        // 取消收藏，减少热度
-        userInfo.userHot -= 3;
+        setTimeout(() => {
+          this.setData({ isSuccess: false });
+        }, 500);
+        // 更新缓存
+        wx.setStorageSync('userInfo', userInfo);
+        wx.setStorageSync('detailData', this.data.detailData);
+        const response = await updateLikeRecords(userId, gid, 'like');
+      } catch (error) {
+        console.error('收藏操作失败:', error);
         this.setData({
-          isSuccess: true,
-          successReason: '取消收藏成功喵(〃∀〃)',
-          'detailData.Liked': false,
-          'detailData.LikeNum': this.data.detailData.LikeNum - 1
+          isFail: true,
+          failReason: '信号飞到三次元了',
         });
+        setTimeout(() => {
+          this.setData({ isFail: false });
+        }, 500);
       }
-  
-      // 更新缓存
-      wx.setStorageSync('userInfo', userInfo);
-      setTimeout(() => {
-        this.setData({ isSuccess: false });
-      }, 500);
-    } catch (error) {
-      console.error('收藏操作失败:', error);
-      this.setData({
-        isFail: true,
-        failReason: '信号飞到三次元了'
-      });
-      setTimeout(() => {
-        this.setData({ isFail: false });
-      }, 500);
     }
   },
-
   /**
    * 生命周期函数--监听页面加载
    */
@@ -432,15 +514,8 @@ Page({
       this.setData({
         gid: gid // 将 gid 设置到 data 中
       });
-
-      // 调用 incrementViews 来增加 views
-      increaseViews(gid).catch(error => {
-        console.error("增加 views 失败:", error);
-      });
-      
       // 检查缓存是否有匹配的 detailData
       const cachedDetailData = wx.getStorageSync('detailData');
-  
       if (cachedDetailData && cachedDetailData.ID === gid) {
         // 如果缓存中存在且ID匹配，直接使用缓存数据
         this.setData({
@@ -460,22 +535,38 @@ Page({
           }
         }).catch((error) => {
           console.error('获取角色详情失败:', error);
-          this.setData({isFail:true})
+          this.setData({
+            isFail:true,
+          })
           // 800毫秒后关闭弹窗
           setTimeout(() => {
             this.setData({isFail: false });
           }, 800);
+          return;
         });
       }
     } else {
       console.error("gid 未定义或无效:", options.gid);
+      this.setData({
+        isFail:true
+      })
+      // 800毫秒后关闭弹窗
+      setTimeout(() => {
+        this.setData({isFail: false });
+      }, 800);
+      return;
     }
-  
+
     if (userInfo && userInfo.avatarUrl) {
       this.setData({
         avatarUrl: userInfo.avatarUrl,
       });
     }
+
+    // 调用 incrementViews 来增加 views
+    increaseViews(gid).catch(error => {
+      console.error("增加 views 失败:", error);
+    });
   },
 
   updateCharts() {
@@ -529,16 +620,44 @@ Page({
   /**
    * 生命周期函数--监听页面卸载
    */
+  // async onUnload() {
+  //   const userInfo = wx.getStorageSync('userInfo'); // 读取缓存中的 userInfo
+  //   if (userInfo && userInfo.userID) {
+  //     try {
+  //       // 发送请求更新用户信息，包括 cardCount 和未来可能的其他字段
+  //       await updateInfos(userInfo);
+  //       wx.setStorageSync('userInfo', userInfo); // 更新缓存
+  //       wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
+  //     } catch (error) {
+  //       console.error('更新 cardCount 到后端失败:', error);
+  //     }
+  //   }
+  // },
+
   async onUnload() {
-    const userInfo = wx.getStorageSync('userInfo'); // 读取缓存中的 userInfo
-    if (userInfo && userInfo.userID) {
+    const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
+    const userId = userInfo ? userInfo.userID : null; // 获取 userID
+    const updatedRating = this.data.updatedRating; // 获取新的评分
+    const girlId = this.data.gid;
+  
+    if (userId && updatedRating !== null) {
       try {
-        // 发送请求更新用户信息，包括 cardCount 和未来可能的其他字段
-        await updateInfos(userInfo);
-        wx.setStorageSync('userInfo', userInfo); // 更新缓存
-        wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
+        // 更新评分到后端
+        await updateRateRecords(userId, girlId, updatedRating);
+        this.setData({ updatedRating: null }); // 重置更新状态
       } catch (error) {
-        console.error('更新 cardCount 到后端失败:', error);
+        console.error('更新评分到后端失败:', error);
+      }
+    }
+  
+    // 其他卸载逻辑
+    if (userInfo) {
+      try {
+        await updateInfos(userInfo);
+        wx.setStorageSync('userInfo', userInfo);
+        wx.setStorageSync('detailData', this.data.detailData);
+      } catch (error) {
+        console.error('更新用户信息到后端失败:', error);
       }
     }
   },
@@ -546,25 +665,55 @@ Page({
   /**
    * 页面相关事件处理函数--监听用户下拉动作
    */
-  onPullDownRefresh() {
+  async onPullDownRefresh() {
+    wx.stopPullDownRefresh();
+    this.setData({isLoading:true})
+
+    // 定义一个变量标记是否超时
+    let isTimeout = false;
+    // 启动超时计时器，5秒后设置超时状态
+    const timeout = setTimeout(() => {
+      isTimeout = true;
+      this.setData({ 
+        isLoading: false, 
+        isFail: true,
+        failReason:'信号似乎不大好喵', 
+      });
+      // 在 500ms 后清除成功或失败状态提示
+      setTimeout(() => {
+        this.setData({ isFail: false });
+      }, 500);
+      console.warn('刷新超时，停止请求响应');
+    }, 8000); // 超时时间 8 秒
+
     const gid = this.data.gid; // 当前女孩的 ID
     const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
     const userId = userInfo ? userInfo.userID : null; // 获取 userID
+    const updatedRating = this.data.updatedRating; // 获取新的评分
   
     if (gid && userId) {
+      // 如果有更新的评分，先同步到后端
+      if (updatedRating !== null) {
+        try {
+          await updateRateRecords(userId, gid, updatedRating);
+          this.setData({ updatedRating: null }); // 重置更新状态
+        } catch (error) {
+          console.error('更新评分到后端失败:', error);
+        }
+      }
+
       fetchGirlDetail(gid, userId)
         .then((res) => {
+          // 检查是否已超时
+          if (isTimeout) return;
           if (res && res.data) {
             this.setData({
               detailData: res.data,
               RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)
             });
             wx.setStorageSync('detailData', res.data);
-  
             // 更新图表数据
             this.updateCharts();
-  
-            wx.stopPullDownRefresh();
           }
           this.setData({
             detailData: res.data,
@@ -578,23 +727,30 @@ Page({
           }, 500);
         })
         .catch((error) => {
+          // 检查是否已超时
+          if (isTimeout) return;
           console.error('刷新角色详情失败:', error);
           this.setData({
             isFail: true, // 显示失败弹窗
             failReason: '信号飞到三次元了'
           });
-          wx.stopPullDownRefresh();
           // 500毫秒后关闭失败弹窗
           setTimeout(() => {
             this.setData({ isFail: false });
           }, 500);
+        })
+        .finally(() => {
+          if (!isTimeout) {
+            clearTimeout(timeout); // 清除定时器
+            this.setData({ isLoading: false });
+          }
         });
     } else {
+      clearTimeout(timeout); // 清除定时器
       this.setData({
         isFail: true, // 显示失败弹窗
         failReason: '无效的用户信息'
       });
-      wx.stopPullDownRefresh();
       // 1秒后关闭失败弹窗
       setTimeout(() => {
         this.setData({ isFail: false });

@@ -2,6 +2,10 @@
 <success-window wx:if="{{isSuccess}}" text="{{successReason}}" />
 <!-- 加载失败组件 -->
 <fail-window wx:if="{{isFail}}" text="{{failReason}}" />
+<!-- 加载动画组件，显示在scroll-view顶部 -->
+<loading-window delay="800" wx:if="{{isLoading}}" frequency="400" text-content="{{['加', '载', '中', '.', '.', '.']}}"></loading-window>
+<!-- 确认失败组件 -->
+<van-dialog id="van-dialog" />
 
 <van-toast id="van-toast" />
 <scroll-view enable-flex scroll-y class="container">

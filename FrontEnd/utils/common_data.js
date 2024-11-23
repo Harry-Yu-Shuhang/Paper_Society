@@ -5,7 +5,6 @@ const girls_rank_score = '/girls/rank/score';
 const girls_profile_waterfall = '/girls/profile/waterfall';
 const girls_profile_search = '/girls/profile/search';
 const girls_detail_get = '/girls/getGirlDetail';
-const check_card = '/girls/profile/update-card';
 const appid = 'wxe354a6fa7c31bf1f';
 const secret = '1653c74b018479ee64285382663c67be'
 
@@ -17,7 +16,6 @@ export {
   girls_profile_waterfall,
   girls_profile_search,
   girls_detail_get,
-  check_card,
   appid,
   secret,
 };

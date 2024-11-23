@@ -33,17 +33,20 @@ Page({
     // 设置加载状态
     this.setData({ isLoading: showLoading });
   
-    // 设置 4 秒定时器，强制重置加载状态
+    // 标志变量，记录是否中断
+    let isTimeout = false;
+    // 设置 5 秒定时器，强制重置加载状态
     const loadingTimeout = setTimeout(() => {
       if (this.data.isLoading) {
+        isTimeout = true; // 设置中断标志
         this.setData({ isLoading: false });
         console.warn("Data loading took too long. Forcing isLoading to false.");
         this.setData({isFail:true, failReason:'信号似乎不大好喵'})
         setTimeout(() => {
           this.setData({isFail:false})
-        },800)
+        },500)
       }
-    }, 4000); // 4 秒
+    }, 5000); // 5 秒
   
     if (isRefresh) {
       // 如果是下拉刷新操作，清空当前数据,并且重新请求后端
@@ -52,6 +55,8 @@ Page({
   
     try {
       const newPics = await this.fetchNewDataFromBackend();
+      // 检查是否超时中断
+      if (isTimeout) return;
       if (newPics.length) {
         if (isRefresh) {
           this.setData({ columns: [[], []] }); // 重置 columns，这样如果失败了也不清空页面上已经渲染的数据
@@ -63,6 +68,8 @@ Page({
         this.setData({ renderedIds: [...this.data.renderedIds, ...newIds] });
       }
     } catch (error) {
+      // 检查是否超时中断
+      if (isTimeout) return;
       console.error("Error loading data:", error);
     } finally {
       clearTimeout(loadingTimeout); // 清除定时器
@@ -127,7 +134,7 @@ Page({
       this.setData({isSuccess:true});
       setTimeout(() => {
         this.setData({isSuccess:false});
-      }, 600);
+      }, 500);
     }
   },
 

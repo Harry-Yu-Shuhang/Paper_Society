@@ -31,7 +31,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 	var createTime int64
 	var userHot int
 
-	isSameDayLogin := true
+	isSameDayLogin := false
 	if isNewUser {
 		userInfo.CardCount = 6
 		userInfo.CreateTime = time.Now().Unix()

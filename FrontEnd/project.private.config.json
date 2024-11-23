@@ -45,13 +45,6 @@
           "query": "",
           "launchMode": "default",
           "scene": null
-        },
-        {
-          "name": "pages/girls/girls",
-          "pathName": "pages/girls/girls",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
         }
       ]
     }

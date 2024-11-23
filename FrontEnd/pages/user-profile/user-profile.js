@@ -21,6 +21,7 @@ Page({
     isFail: false,
     failReason: '信号飞到三次元了',
     isSuccess:false,
+    isLoading:false,
     isDescending: false, // 控制排序的布尔变量,默认新欢优先
     showGongzhonghao: false, // 控制弹窗显示
   },
@@ -157,7 +158,7 @@ Page({
     } else if (cardPercent > 30 && cardPercent <= 70) {
       return "丰衣足食";
     } else {
-      return "富可敌国";
+      return "腰缠万贯";
     }
   },
 
@@ -165,7 +166,7 @@ Page({
     if (hotPercent <= 30) {
       return "与世无争";
     } else if (hotPercent > 30 && hotPercent <= 70) {
-      return "稳中向好"; 
+      return "循序渐进"; 
     } else {
       return "不遗余力";
     }
@@ -204,26 +205,20 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad() {
+  onShow() {
     // 从缓存中读取 userInfo
     const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
-      // 调用封装函数计算加入日期和天数
-      const { joinDateString, daysJoined } = this.calculateJoinDetails(userInfo.createTime);
-      // 设置数据
-      this.setData({
-        avatarUrl: userInfo.avatarUrl,
-        userName: userInfo.nickName,
-        daysJoined,
-        joinDateString,
-        cardCount: userInfo.cardCount,
-        heatContribution: userInfo.userHot
-      });
-      // 获取用户排名数据
-      this.getUserRanking();
-      // 获取用户收藏列表
-      this.loadUserFavorites();
-    }
+    // 调用封装函数计算加入日期和天数
+    const { joinDateString, daysJoined } = this.calculateJoinDetails(userInfo.createTime);
+    // 设置数据
+    this.setData({
+      avatarUrl: userInfo.avatarUrl,
+      userName: userInfo.nickName,
+      daysJoined,
+      joinDateString,
+      cardCount: userInfo.cardCount,
+      heatContribution: userInfo.userHot
+    });
   },
 
   /**
@@ -236,8 +231,11 @@ Page({
   /**
    * 生命周期函数--监听页面显示
    */
-  onShow() {
-
+  onLoad() {
+    // 获取用户排名数据
+    this.getUserRanking();
+    // 获取用户收藏列表
+    this.loadUserFavorites();
   },
 
   /**
@@ -259,18 +257,52 @@ Page({
    */
   async onPullDownRefresh() {
     try {
-    await this.getUserRanking();
-    await this.loadUserFavorites();
-      // 如果加载成功，更新成功状态
-      this.setData({ isSuccess: true, isFail: false });
+      // 停止下拉刷新动画
+      wx.stopPullDownRefresh();
+      this.setData({ isLoading: true });
+      // 定义一个变量标记是否超时
+      let isTimeout = false;
+      // 启动超时计时器，5秒后设置超时状态
+      const timeout = setTimeout(() => {
+        isTimeout = true;
+        this.setData({ 
+          isLoading: false, 
+          isFail: true,
+          failReason:'信号似乎不大好喵', 
+        });
+        // 在 500ms 后清除成功或失败状态提示
+        setTimeout(() => {
+          this.setData({ isFail: false });
+        }, 500);
+        console.warn('刷新超时，停止请求响应');
+      }, 8000); // 超时时间 8 秒
+
+      // this.onShow()代码
+      const userInfo = wx.getStorageSync('userInfo');
+      const { joinDateString, daysJoined } = this.calculateJoinDetails(userInfo.createTime);
+      this.setData({
+        avatarUrl: userInfo.avatarUrl,
+        userName: userInfo.nickName,
+        daysJoined,
+        joinDateString,
+        cardCount: userInfo.cardCount,
+        heatContribution: userInfo.userHot
+      });
+      // 加载用户排名信息
+      await this.getUserRanking();
+      // 加载用户收藏信息
+      await this.loadUserFavorites();
+      // 如果超时，直接退出
+      if (isTimeout) return;
+      // 清除计时器并更新成功状态
+      clearTimeout(timeout);
+      this.setData({ isSuccess: true, isLoading: false });
     } catch (error) {
       console.error('刷新失败:', error);
-      // 如果加载失败，设置失败状态
-      this.setData({ isFail: true, isSuccess: false });
+      // 清除计时器并设置失败状态
+      clearTimeout(timeout);
+      this.setData({ isFail: true, isLoading: false });
     }
-
-    // 停止下拉刷新动画
-    wx.stopPullDownRefresh();
 
     // 在 500ms 后清除成功或失败状态提示
     setTimeout(() => {
