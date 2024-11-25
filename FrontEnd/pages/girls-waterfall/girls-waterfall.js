@@ -72,7 +72,8 @@ Page({
     } catch (error) {
       // 检查是否超时中断
       if (isTimeout) return;
-      console.error("Error loading data:", error);
+      clearTimeout(loadingTimeout);
+      throw error; // 向上抛出错误
     } finally {
       clearTimeout(loadingTimeout); // 清除定时器
       this.setData({ isLoading: false }); // 确保在加载完成后设置 isLoading 为 false
@@ -81,8 +82,22 @@ Page({
 
   async fetchNewDataFromBackend() {
     this.setData({ isLoading: true });
+
+    let isTimeout = false;
+    const loadingTimeout = setTimeout(() => {
+      isTimeout = true;
+      this.setData({ 
+        isLoading: false, 
+        isFail: true, 
+        failReason: '信号似乎不大好喵' 
+      });
+      setTimeout(() => this.setData({ isFail: false }), 800);
+      console.warn("Backend fetch timed out.");
+    }, 5000); // 超时时间为 5 秒
+
     try {
       const res = await fetchWaterFallList({ renderedIds: this.data.renderedIds }); // 传递已渲染的ID列表
+      if (isTimeout) return [];
       // 检查返回的数据是否为空
       if (Array.isArray(res.data) && res.data.length === 0) {
         this.setData({ isLoading: false });
@@ -104,40 +119,63 @@ Page({
       }
       return Array.isArray(res.data) ? res.data.slice(0, photo_step) : [];
     } catch (error) {
-      console.error("Error fetching new data from backend:", error);
-      this.setData({ isLoading: false });
-      setTimeout(() => {
-        this.setData({ 
-          isFail: true,
-          failReason:default_fail_reason,
-         });
-      }, 0);
+      if (isTimeout) return [];
+      this.setData({ 
+        isLoading: false,
+        isFail: true,
+        failReason:default_fail_reason,
+      });
       setTimeout(() => {
         this.setData({ isFail: false });
       }, 500);
       return [];
+    }finally{
+      clearTimeout(loadingTimeout); // 清除计时器
     }
   },
   
   async renderPage(picList, isFirst=false) {
     this.setData({isLoading:true});
-    const { columns } = this.data;
-    const columnsHeight = columns.map(col => col.reduce((sum, pic) => sum + pic.height, 0));
 
-    const results = await Promise.all(picList.map(pic => getImageInfo(pic)));
-    results.forEach(res => {
-      const index = columnsHeight[0] <= columnsHeight[1] ? 0 : 1;
-      columns[index].push(res);
-      columnsHeight[index] += res.height;
-    });
+    let isTimeout = false;
+    const renderTimeout = setTimeout(() => {
+      isTimeout = true;
+      this.setData({ 
+        isLoading: false, 
+        isFail: true, 
+        failReason: '信号似乎不大好喵' 
+      });
+      setTimeout(() => this.setData({ isFail: false }), 800);
+      console.warn("Rendering page timed out.");
+    }, 5000); // 超时时间为 5 秒
 
-    this.setData({ columns });
-    this.setData({isLoading:false});
-    if(!isFirst){
-      this.setData({isSuccess:true});
-      setTimeout(() => {
-        this.setData({isSuccess:false});
-      }, 500);
+    try{
+      const { columns } = this.data;
+      const columnsHeight = columns.map(col => col.reduce((sum, pic) => sum + pic.height, 0));
+
+      const results = await Promise.all(picList.map(pic => getImageInfo(pic)));
+      if (isTimeout) return; // 如果超时直接退出
+      results.forEach(res => {
+        const index = columnsHeight[0] <= columnsHeight[1] ? 0 : 1;
+        columns[index].push(res);
+        columnsHeight[index] += res.height;
+      });
+
+      this.setData({ columns });
+      this.setData({isLoading:false});
+      if(!isFirst){
+        this.setData({isSuccess:true});
+        setTimeout(() => {
+          this.setData({isSuccess:false});
+        }, 500);
+      }
+    }catch (error) {
+      if (isTimeout) return;
+      clearTimeout(renderTimeout);
+      throw error; // 向上抛出错误
+    } finally {
+      clearTimeout(renderTimeout); // 清除计时器
+      this.setData({ isLoading: false });
     }
   },
 
@@ -147,8 +185,23 @@ Page({
     }
     
     this.setData({ isLoading: true });
+
+    let isTimeout = false;
+    const searchTimeout = setTimeout(() => {
+      isTimeout = true;
+      this.setData({ 
+        isLoading: false, 
+        isFail: true, 
+        failReason: '信号似乎不大好喵' 
+      });
+      setTimeout(() => this.setData({ isFail: false }), 800);
+      console.warn("Search data timed out.");
+    }, 5000); // 超时时间为 5 秒
+
     try {
       const res = await fetchSearchList(keyword);
+      if (isTimeout) return;
+
       if (res.data.length) {
         this.setData({ columns: [[], []], searchExist: true }); // 重置列并标记有搜索结果
         await this.renderPage(res.data);
@@ -157,10 +210,12 @@ Page({
         setTimeout(() => this.setData({ isFail: false, failReason: default_fail_reason }), 800);
       }
     } catch (error) {
+      if (isTimeout) return;
       console.error("搜索失败:", error);
-      this.setData({ isFail: true, failReason: "搜索失败，请稍后重试" });
+      this.setData({ isFail: true, failReason: "搜索失败喵" });
       setTimeout(() => this.setData({ isFail: false, failReason: default_fail_reason }), 800);
     } finally {
+      clearTimeout(searchTimeout); // 清除计时器
       this.setData({ isLoading: false });
     }
   },
