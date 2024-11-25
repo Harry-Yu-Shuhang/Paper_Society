@@ -36,8 +36,8 @@ func (g GirlWaterFallController) PostRandomGirls(c *gin.Context) {
 		query = query.Where("id NOT IN (?)", request.RenderedIds)
 	}
 
-	// 查询数据库并限制结果为8个 8要和前端一致哦
-	if err := query.Limit(10).Find(&girls).Error; err != nil {
+	// 查询数据库并限制结果为20个 20要和前端一致哦
+	if err := query.Limit(20).Find(&girls).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
 		return
 	}

@@ -40,10 +40,8 @@
       "root": "packageDetail",
       "pages": [
         "girl-detail/girl-detail"
-      ]
+      ],
+      "independent": true
     }
-  ],
-  "usingComponents": {
-    "girl": "/components/girl/index"
-  }
+  ]
 }

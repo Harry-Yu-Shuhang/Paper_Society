@@ -70,7 +70,7 @@
         <text class="text-line">长按图片识别二维码</text>
         <text class="text-line">关注纸片社公众号</text>
       </view>
-      <image class="qrcode-image" src="/images/gongzhonghao.jpg" mode="aspectFit" />
+      <image class="qrcode-image" show-menu-by-longpress src="/images/gongzhonghao.jpg" mode="aspectFit" />
     </view>
   </view>
 

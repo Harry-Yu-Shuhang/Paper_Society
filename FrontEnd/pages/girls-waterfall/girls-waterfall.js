@@ -1,6 +1,6 @@
 import { fetchWaterFallList, fetchSearchList } from '../../utils/request';
 
-const photo_step = 10;
+const photo_step = 20;
 const default_fail_reason = '信号飞到三次元了'
 
 async function getImageInfo(item) {
@@ -199,7 +199,9 @@ Page({
     if (initialData && initialData.length) {
       // 从缓存数据中提取已渲染的 ID，并将其存储到 renderedIds
       const initialRenderedIds = initialData.map(item => item.id);
-      this.setData({ renderedIds: initialRenderedIds });
+      this.setData({ 
+        renderedIds: initialRenderedIds
+      });
       this.renderPage(initialData, true);
     } else {
       this.loadData(); // 如果没有缓存数据则执行正常加载流程

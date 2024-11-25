@@ -40,5 +40,7 @@ func Router() *gin.Engine {
 		updates.POST("/raterecords", controllers.UpdateRecordsController{}.UpdateRateRecords)
 		updates.POST("/cardrecords", controllers.UpdateRecordsController{}.UpdateCardRecords)
 	}
+	// 替换为直接获取 openid 的接口
+	r.GET("/api/getOpenID", controllers.AuthController{}.GetOpenID)
 	return r
 }

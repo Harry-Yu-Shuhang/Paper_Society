@@ -1,32 +1,32 @@
 // pages/welcome/welcome.js
 import { sendUserInfo, fetchWaterFallList} from '../../utils/request';
-import { appid, secret } from '../../utils/common_data';
+import { baseURL } from '../../utils/common_data';
 
 const delayTime = 1500; // 延迟跳转时长
 
 // 封装 wx.request 为 Promise
-function requestPromise(url, method, data = {}) {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url,
-      method,
-      data,
-      header: {
-        'Content-Type': 'application/json'
-      },
-      success: (res) => {
-        if (res && res.data) {
-          resolve(res.data); // 只返回响应数据
-        } else {
-          reject(new Error("Invalid response data"));
-        }
-      },
-      fail: (error) => {
-        reject(error);
-      }
-    });
-  });
-}
+// function requestPromise(url, method, data = {}) {
+//   return new Promise((resolve, reject) => {
+//     wx.request({
+//       url,
+//       method,
+//       data,
+//       header: {
+//         'Content-Type': 'application/json'
+//       },
+//       success: (res) => {
+//         if (res && res.data) {
+//           resolve(res.data); // 只返回响应数据
+//         } else {
+//           reject(new Error("Invalid response data"));
+//         }
+//       },
+//       fail: (error) => {
+//         reject(error);
+//       }
+//     });
+//   });
+// }
 
 // 预加载角色库数据
 // async function preloadRankData() {
@@ -104,43 +104,91 @@ Page({
     this.authorizeUser();
   },
 
+  // async authorizeUser() {
+  //   try {
+  //     const profileRes = await wx.getUserProfile({ desc: '用于身份验证' });
+  //     const { nickName, avatarUrl } = profileRes.userInfo;
+  //     const userInfo = { nickName, avatarUrl };
+  //     this.setData({
+  //       userInfo,
+  //       hasUserInfo: true,
+  //     });
+
+  //     const loginRes = await wx.login();
+  //     if (loginRes.code) {
+  //       const URL = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${loginRes.code}&grant_type=authorization_code`;
+        
+  //       const requestRes = await requestPromise(URL, 'POST');
+  //       const openid = requestRes && requestRes.openid;
+  //       if (openid) {
+  //         userInfo.openid = openid;
+  //         wx.setStorageSync('userInfo', userInfo);
+  //         this.setData({ userInfo });
+  //         this.handleUserLogin();
+  //       } else {
+  //         console.error("Failed to obtain openid from response:", requestRes);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     if (err && err.errMsg && err.errMsg.includes('auth deny')) {
+  //       wx.showModal({
+  //         title: '请授予权限',
+  //         content: '没身份不可以去二次元哦!',
+  //         showCancel: false,
+  //         confirmText: '知道了',
+  //       });
+  //     } else {
+  //       console.error('授权失败:', err);
+  //     }
+  //   }
+  // },
+
   async authorizeUser() {
     try {
       const profileRes = await wx.getUserProfile({ desc: '用于身份验证' });
       const { nickName, avatarUrl } = profileRes.userInfo;
+  
       const userInfo = { nickName, avatarUrl };
       this.setData({
         userInfo,
         hasUserInfo: true,
       });
-
-      const loginRes = await wx.login();
-      if (loginRes.code) {
-        const URL = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${loginRes.code}&grant_type=authorization_code`;
-        const requestRes = await requestPromise(URL, 'POST');
-        const openid = requestRes && requestRes.openid;
-        if (openid) {
-          userInfo.openid = openid;
-          wx.setStorageSync('userInfo', userInfo);
-          this.setData({ userInfo });
-          this.handleUserLogin();
-        } else {
-          console.error("Failed to obtain openid from response:", requestRes);
-        }
+  
+      // 使用 wx.cloud.callContainer 调用后端服务
+      const result = await wx.cloud.callContainer({
+        config: {
+          env: 'prod-4guz1brc55a6d768', // 替换为云托管环境ID
+        },
+        path: '/api/getOpenID', // 替换为后端路由路径
+        method: 'GET',
+        header: {
+          'X-WX-SERVICE': 'golang-5kg8', // 替换为云托管服务的名称
+        },
+      });
+  
+      if (result?.data?.openid) {
+        userInfo.openid = result.data.openid;
+        wx.setStorageSync('userInfo', userInfo);
+        this.setData({ userInfo });
+        this.handleUserLogin();
+      } else {
+        console.error('Failed to fetch openid:', result);
+        wx.showModal({
+          title: 'Error',
+          content: '获取 openid 失败，请检查云托管配置。',
+          showCancel: false,
+        });
       }
     } catch (err) {
-      if (err && err.errMsg && err.errMsg.includes('auth deny')) {
-        wx.showModal({
-          title: '请授予权限',
-          content: '没身份不可以去二次元哦!',
-          showCancel: false,
-          confirmText: '知道了',
-        });
-      } else {
-        console.error('授权失败:', err);
-      }
+      console.error('授权失败:', err);
+      wx.showModal({
+        title: '请授予权限',
+        content: '没身份不可以去二次元哦!',
+        showCancel: false,
+      });
     }
   },
+
 
   async handleUserLogin() {
     const { userInfo } = this.data;

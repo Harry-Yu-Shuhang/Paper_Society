@@ -1,4 +1,4 @@
-import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail, fetchWaterFallList } from '../../utils/request';
+import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail, fetchWaterFallList, fetchUserFavorites } from '../../utils/request';
 let rankType = 'hotRank';
 
 // 预加载角色库数据
@@ -33,60 +33,22 @@ Page({
     // userName:"新用户"
   },
 
-  // async fetchRankData(rankType, offset = 0, isRefresh = false) {
-  //   try {
-  //     if (offset === 0 && !isRefresh && this.data.fetchRankList.length > 0) return; // 避免重复请求
-      
-  //     if (isRefresh) {
-  //       this.setData({ hasMoreData: true });
-  //     }
-
-  //     // 根据 rankType 获取相应的排行榜数据
-  //     const response = rankType === 'hotRank' ? 
-  //       await fetchHotRankList(offset) : await fetchScoreRankList(offset);
-
-  //     const { data: newRankList, hasMoreData, idList } = response;
-
-  //     if (isRefresh || offset === 0) {
-  //       this.setData({
-  //         idListCache: idList,  // 缓存ID列表
-  //         fetchRankList: newRankList,
-  //         currentCount: newRankList.length,
-  //         hasMoreData,
-  //       });
-        
-  //       // 根据 rankType 缓存 ID 列表到本地存储
-  //       const cacheKey = rankType === 'hotRank' ? 'hotRankData' : 'scoreRankData';
-  //       wx.setStorageSync(cacheKey, {
-  //         idListCache: idList,
-  //         fetchRankList: newRankList,
-  //         hasMoreData
-  //       });
-  //     } else {
-  //       this.setData({
-  //         fetchRankList: [...this.data.fetchRankList, ...newRankList],
-  //         currentCount: offset + newRankList.length,
-  //         loading: false,
-  //         hasMoreData,
-  //       });
-  //     }
-
-  //     if (isRefresh) {
-  //       this.setData({ 
-  //         isSuccess: true,
-  //         isLoading:false
-  //        });
-  //       setTimeout(() => this.setData({ isSuccess: false }), 500);
-  //     }
-  //     setTimeout(() => this.setData({ loading: false }), 800);
-  //   } catch (error) {
-  //     console.error('获取排行榜数据失败:', error);
-  //     this.setData({ loading: false, isFail: true });
-  //     setTimeout(() => this.setData({ isFail: false }), 800);
-  //   }
-  // },
-
   async fetchRankData(rankType, offset = 0, isRefresh = false) {
+    // 定义一个变量标记是否超时
+    let isTimeout = false;
+    // 启动超时计时器，5秒后设置超时状态
+    const timeout = setTimeout(() => {
+      isTimeout = true;
+      if (isRefresh) {
+        this.setData({ 
+          isLoading: false, 
+          isFail: true,
+          failReason:'信号似乎不大好喵', 
+        });
+        setTimeout(() => this.setData({ isFail: false }), 500);
+      }
+      console.warn('刷新超时，停止请求响应');
+    }, 5000); // 超时时间 5 秒
     try {
       if (offset === 0 && !isRefresh && this.data.fetchRankList.length > 0) return; // 避免重复请求
   
@@ -97,29 +59,10 @@ Page({
         });
       }
   
-      // 定义一个变量标记是否超时
-      let isTimeout = false;
-      // 启动超时计时器，5秒后设置超时状态
-      const timeout = setTimeout(() => {
-        isTimeout = true;
-        if (isRefresh) {
-          this.setData({ 
-            isLoading: false, 
-            isFail: true,
-            failReason:'信号似乎不大好喵', 
-          });
-          setTimeout(() => this.setData({ isFail: false }), 500);
-        }
-        console.warn('刷新超时，停止请求响应');
-      }, 5000); // 超时时间 5 秒
-  
       // 根据 rankType 获取相应的排行榜数据
       const response = rankType === 'hotRank' ? await fetchHotRankList(offset) : await fetchScoreRankList(offset);
       // 如果超时，直接退出，不处理响应结果
       if (isTimeout) return;
-  
-      // 清除计时器
-      clearTimeout(timeout);
   
       const { data: newRankList, hasMoreData, idList } = response;
   
@@ -154,8 +97,8 @@ Page({
         });
         setTimeout(() => this.setData({ isSuccess: false }), 500);
       }
-  
       setTimeout(() => this.setData({ loading: false }), 800);
+      clearTimeout(timeout); // 如果请求失败，也需要清除计时器
     } catch (error) {
       console.error('获取排行榜数据失败:', error);
       clearTimeout(timeout); // 如果请求失败，也需要清除计时器
@@ -250,6 +193,60 @@ Page({
     }
   },
 
+  // 计算用户收藏的天数
+  calculateDaysSince(createdAt) {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    const currentTime = Math.floor(currentDate.getTime() / 1000);
+
+    const recordDate = new Date(createdAt * 1000);
+    recordDate.setHours(0, 0, 0, 0);
+    const recordTime = Math.floor(recordDate.getTime() / 1000);
+
+    // 计算从收藏到现在的天数
+    const daysAgo = Math.floor((currentTime - recordTime) / (60 * 60 * 24));
+    return daysAgo;
+  },
+
+     /**
+   * 获取用户收藏的角色
+   */
+  async loadUserFavorites() {
+    const userInfo = wx.getStorageSync('userInfo');
+    const userId = userInfo ? userInfo.userID : null;
+  
+    if (!userId) {
+      console.error('用户未登录');
+      return;
+    }
+  
+    try {
+      const response = await fetchUserFavorites(userId);
+      const { favorites: favoritesList } = response;
+      const updatedFavoritesList = favoritesList.map(item => ({
+        ...item,
+        daysAgo: this.calculateDaysSince(item.created_at)
+      }));
+  
+      // 根据排序状态排序
+      updatedFavoritesList.sort((a, b) => {
+        // if (this.data.isDescending) {
+        //   return a.created_at - b.created_at;
+        // } else {
+          return b.created_at - a.created_at;
+        // }
+      });
+
+      //收藏夹存入缓存
+      wx.setStorageSync('userFavorites',updatedFavoritesList);
+    } catch (error) {
+      console.error('获取用户收藏失败:', error);
+      this.setData({ isFail: true });
+      setTimeout(() => this.setData({ isFail: false }), 800);
+      throw error; // 继续向上抛出异常，以便外部捕获
+    }
+  },
+
   onLoad() {
     const userInfo = wx.getStorageSync('userInfo'); // 获取缓存中的用户信息
     // this.setData({userName:userInfo.nickName})
@@ -277,6 +274,7 @@ Page({
     // 加载排行榜数据或缓存
     const hotRankCache = wx.getStorageSync('hotRankData');
     const initialGirlsCache = wx.getStorageSync('initialGirlsData');
+    const userFavorites = wx.getStorageSync('userFavorites');
   
     if (hotRankCache && hotRankCache.idListCache) {
       this.setData({
@@ -292,6 +290,10 @@ Page({
   
     if (!initialGirlsCache) {
       preloadRankData();
+    }
+    if(!userFavorites){
+      // 获取用户收藏列表
+      this.loadUserFavorites();
     }
   },
 
@@ -329,6 +331,7 @@ Page({
       this.setData({
         isFail: true,
         failReason: '信号飞到三次元了',
+        isLoading:false,
       });
       setTimeout(() => {
         this.setData({ isFail: false });

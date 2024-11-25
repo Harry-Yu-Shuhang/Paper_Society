@@ -9,25 +9,48 @@ import {
 } from './common_data';
 
 // 通用请求函数，使用 async/await
+// async function sendRequest(endpoint, method, data = {}) {
+//   try {
+//     const res = await new Promise((resolve, reject) => {
+//       wx.request({
+//         url: `${baseURL}${endpoint}`,
+//         method: method,
+//         data: data,
+//         header: {
+//           'Content-Type': 'application/json',
+//         },
+//         success: (res) => {
+//           resolve(res.data);
+//         },
+//         fail: (error) => {
+//           reject(error);
+//         },
+//       });
+//     });
+//     return res;
+//   } catch (error) {
+//     console.error(`Request failed for ${method} ${endpoint}:`, error);
+//     throw error;
+//   }
+// }
+
+
+// 通用请求函数，使用云托管内网请求
 async function sendRequest(endpoint, method, data = {}) {
   try {
-    const res = await new Promise((resolve, reject) => {
-      wx.request({
-        url: `${baseURL}${endpoint}`,
-        method: method,
-        data: data,
-        header: {
-          'Content-Type': 'application/json',
-        },
-        success: (res) => {
-          resolve(res.data);
-        },
-        fail: (error) => {
-          reject(error);
-        },
-      });
+    const res = await wx.cloud.callContainer({
+      config: {
+        env: 'prod-4guz1brc55a6d768', // 替换为实际的云环境 ID
+      },
+      path: endpoint, // API 路径
+      method: method, // HTTP 方法
+      header: {
+        'X-WX-SERVICE': 'golang-5kg8', // 替换为实际的服务名称
+        'Content-Type': 'application/json',
+      },
+      data: data, // 请求数据
     });
-    return res;
+    return res.data; // 返回业务数据
   } catch (error) {
     console.error(`Request failed for ${method} ${endpoint}:`, error);
     throw error;

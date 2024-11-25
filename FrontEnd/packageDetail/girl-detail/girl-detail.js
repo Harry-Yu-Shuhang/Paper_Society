@@ -239,60 +239,9 @@ Page({
     successReason: '加载成功喵(〃∀〃)',//成功原因
     isLoading: false, // 加载弹窗状态
     updatedRating: null, // 新的评分，仅在必要时更新到后端
+    initialLikedStatus:false,//第一次进入页面的时候的收藏状态
+    initialCardStatus:false,//第一次进入页面的时候的签到卡状态
   },
-
-  // onChangeMyRate(event) {
-  //   const newRating = event.detail;
-  //   const currentRating = this.data.detailData.MyRate;
-
-  //   // 如果评分没有变化，不执行后续操作
-  //   if (newRating === currentRating) {
-  //     return;
-  //   }
-
-  //   // 更新评分
-  //   const updatedDetailData = { ...this.data.detailData, MyRate: newRating };
-  //   this.setData({
-  //     detailData: updatedDetailData,
-  //   });
-
-  //   // 获取用户信息和女孩的ID
-  //   const userInfo = wx.getStorageSync('userInfo');
-  //   const userId = userInfo ? userInfo.userID : null;
-  //   const girlId = this.data.gid;
-  //   this.setData({
-  //     isSuccess: true, 
-  //     successReason: '修改评分成功喵(〃∀〃)'
-  //   });
-  //   // 1秒后关闭弹窗
-  //   setTimeout(() => {
-  //     this.setData({ isSuccess: false });
-  //   }, 500);
-
-  //   // 向后端发送评分修改请求
-  //   const response = updateRateRecords(userId, girlId, newRating)
-  //     .then(() => {
-  //       // 如果是首次评分，增加热度
-  //       if (!currentRating) {
-  //         userInfo.userHot += 1;
-  //         wx.setStorageSync('userInfo', userInfo);
-  //       }
-  //       // 请求成功后，将更新的评分存入缓存
-  //       wx.setStorageSync('detailData', updatedDetailData);
-  //     })
-  //     .catch(error => {
-  //       console.error('评分修改失败:', error);
-  //       this.setData({
-  //         isFail: true, // 显示失败弹窗
-  //         failReason: '信号飞到三次元了'
-  //       });
-  //       // 1秒后关闭失败弹窗
-  //       setTimeout(() => {
-  //         this.setData({ isFail: false });
-  //       }, 500);
-  //     });
-  //     this.addRequestToQueue(response); // 添加到队列
-  // },
 
   onChangeMyRate(event) {
     const newRating = event.detail;
@@ -379,24 +328,21 @@ Page({
         userInfo.userHot += 1;
         // 更新缓存中的 userInfo.cardCount 并存入缓存
         userInfo.cardCount -= 1;
-
+        // 更新 detailData.Voted 为 true
         this.setData({
+          'detailData.Voted': true,
+          'detailData.CardNum': this.data.detailData.CardNum + 1,
           isSuccess: true, 
           successReason: '送签到卡成功喵(〃∀〃)'
         });
+
         setTimeout(() => {
             this.setData({ isSuccess: false });
         }, 500);
-  
-        // 更新 detailData.Voted 为 true
-        this.setData({
-            'detailData.Voted': true,
-            'detailData.CardNum': this.data.detailData.CardNum + 1,
-        });
 
         wx.setStorageSync('userInfo', userInfo); // 更新缓存中的 userInfo
         wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
-        updateCardRecord(userId, gid)//最后发送请求给后台
+        // updateCardRecord(userId, gid)//最后发送请求给后台
     } catch (error) {
         console.error('签到卡请求失败:', error);
         this.setData({
@@ -410,14 +356,14 @@ Page({
   },
 
   async onLikeIconTap() {
-    const gid = wx.getStorageSync('detailData').ID; // 获取角色 ID
+    // const gid = wx.getStorageSync('detailData').ID; // 获取角色 ID
     const userInfo = wx.getStorageSync('userInfo');
-    const userId = userInfo ? userInfo.userID : null;
+    // const userId = userInfo ? userInfo.userID : null;
     const girlName = this.data.detailData.Name; // 动态获取角色名
   
     // 判断当前收藏状态
     const isLiked = this.data.detailData.Liked;
-  
+    //已经收藏
     if (isLiked) {
       const beforeClose = (action) => {
         return new Promise(async (resolve) => {
@@ -432,19 +378,17 @@ Page({
                 'detailData.Liked': false,
                 'detailData.LikeNum': this.data.detailData.LikeNum - 1,
               });
-              // 成功后关闭弹窗
+              // 成功后打开弹窗
               setTimeout(() => {
                 this.setData({ isSuccess: true, });
-              }, 500);
+              }, 200);
               // 更新缓存
               wx.setStorageSync('userInfo', userInfo);
               wx.setStorageSync('detailData', this.data.detailData);
               // 成功后关闭弹窗
               setTimeout(() => {
                 this.setData({ isSuccess: false });
-              }, 1000);
-              //给后端发送请求
-              const response = await updateLikeRecords(userId, gid, 'unlike');
+              }, 700);
             } catch (error) {
               console.error('取消收藏失败:', error);
               setTimeout(() => {
@@ -473,7 +417,6 @@ Page({
     } else {
       // 收藏操作
       try {
-        // const response = await updateLikeRecords(userId, gid, 'like');
         // 更新收藏状态和热度
         userInfo.userHot += 3;
         this.setData({
@@ -488,7 +431,6 @@ Page({
         // 更新缓存
         wx.setStorageSync('userInfo', userInfo);
         wx.setStorageSync('detailData', this.data.detailData);
-        const response = await updateLikeRecords(userId, gid, 'like');
       } catch (error) {
         console.error('收藏操作失败:', error);
         this.setData({
@@ -501,11 +443,13 @@ Page({
       }
     }
   },
+
+
   /**
    * 生命周期函数--监听页面加载
    */
 
-  onLoad(options) {
+  async onLoad(options) {
     const gid = Number(options.gid);
     const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
     const userId = userInfo ? userInfo.userID : null; // 获取 userID
@@ -520,23 +464,39 @@ Page({
         // 如果缓存中存在且ID匹配，直接使用缓存数据
         this.setData({
           detailData: cachedDetailData,
-          RateNum: cachedDetailData.RateNum.reduce((acc, curr) => acc + curr, 0)
+          RateNum: cachedDetailData.RateNum.reduce((acc, curr) => acc + curr, 0),
+          initialLikedStatus: cachedDetailData.Liked, // 记录初始收藏状态
+          initialCardStatus: cachedDetailData.Voted, // 记录初始收藏状态
         });
       } else {
+        this.setData({isLoading:true})
         // 如果缓存不存在或ID不匹配，发起请求并存入缓存
         fetchGirlDetail(gid, userId).then((res) => {
           if (res && res.data) {
             this.setData({
               detailData: res.data,
-              RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0)
+              RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0),
+              initialLikedStatus: res.data.Liked, // 记录初始收藏状态
+              initialCardStatus: res.data.Voted, // 记录初始收藏状态
             });
             // 将新获取的数据存入缓存
             wx.setStorageSync('detailData', res.data);
           }
+          this.setData({
+            isLoading:false,
+          })
+          // this.setData({
+          //   isLoading:false,
+          //   isSuccess:true,
+          // })
+          // setTimeout(() => {
+          //   this.setData({isSuccess:false})
+          // }, 500);
         }).catch((error) => {
           console.error('获取角色详情失败:', error);
           this.setData({
             isFail:true,
+            isLoading:false,
           })
           // 800毫秒后关闭弹窗
           setTimeout(() => {
@@ -589,6 +549,21 @@ Page({
     }
   },
 
+  // 计算用户收藏的天数
+  calculateDaysSince(createdAt) {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    const currentTime = Math.floor(currentDate.getTime() / 1000);
+
+    const recordDate = new Date(createdAt * 1000);
+    recordDate.setHours(0, 0, 0, 0);
+    const recordTime = Math.floor(recordDate.getTime() / 1000);
+
+    // 计算从收藏到现在的天数
+    const daysAgo = Math.floor((currentTime - recordTime) / (60 * 60 * 24));
+    return daysAgo;
+  },
+
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
@@ -607,7 +582,7 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-
+    
   },
 
   /**
@@ -620,25 +595,57 @@ Page({
   /**
    * 生命周期函数--监听页面卸载
    */
-  // async onUnload() {
-  //   const userInfo = wx.getStorageSync('userInfo'); // 读取缓存中的 userInfo
-  //   if (userInfo && userInfo.userID) {
-  //     try {
-  //       // 发送请求更新用户信息，包括 cardCount 和未来可能的其他字段
-  //       await updateInfos(userInfo);
-  //       wx.setStorageSync('userInfo', userInfo); // 更新缓存
-  //       wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
-  //     } catch (error) {
-  //       console.error('更新 cardCount 到后端失败:', error);
-  //     }
-  //   }
-  // },
-
   async onUnload() {
     const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
     const userId = userInfo ? userInfo.userID : null; // 获取 userID
     const updatedRating = this.data.updatedRating; // 获取新的评分
     const girlId = this.data.gid;
+    const initialLikedStatus = this.data.initialLikedStatus; // 初始收藏状态
+    const currentLikedStatus = this.data.detailData.Liked; // 当前收藏状态
+    const initialCardStatus = this.data.initialCardStatus; // 初始签到卡状态
+    const currentCardStatus = this.data.detailData.Voted; // 当前签到卡状态
+    const girlName = this.data.detailData.Name; // 动态获取角色名
+
+    if (userId && initialCardStatus !== currentCardStatus) {
+      try {
+        updateCardRecord(userId, girlId)//最后发送请求给后台
+      } catch (error) {
+        console.error('同步签到卡状态到后端失败:', error);
+      }
+    }
+
+    //同步收藏夹
+    if (userId && initialLikedStatus !== currentLikedStatus) {
+      try {
+        const action = currentLikedStatus ? 'like' : 'unlike';
+        if (action =='unlike'){//取消收藏
+          // 更新 userFavorites 缓存
+          let favorites = wx.getStorageSync('userFavorites') || [];
+          favorites = favorites.filter((item) => item.girl_id !== girlId); // 移除该 girl_id 的记录
+          wx.setStorageSync('userFavorites', favorites);
+        }else{//添加收藏
+          // 更新 userFavorites 缓存
+          let favorites = wx.getStorageSync('userFavorites') || [];
+          const newId = -1*(favorites.length); // 获取新 ID，临时随便选一个数，选择个数*-1
+          const newFavorite = {
+            id: newId,
+            girl_id: girlId,
+            name: girlName,
+            avatarSrc: this.data.detailData.AvatarSrc, // 假设 detailData 包含 AvatarSrc 字段
+            created_at: Math.floor(Date.now() / 1000), // 当前时间戳
+            daysAgo: this.calculateDaysSince(Math.floor(Date.now() / 1000)),//算几天之前
+          };
+          favorites.push(newFavorite); // 添加新记录
+          wx.setStorageSync('userFavorites', favorites);
+        }
+        await updateLikeRecords(userId, girlId, action); // 同步收藏状态到后端
+        this.setData({
+          initialLikedStatus:currentLikedStatus,
+        })//更新初始收藏状态
+      } catch (error) {
+        console.error('同步收藏状态到后端失败:', error);
+      }
+    }
   
     if (userId && updatedRating !== null) {
       try {
@@ -684,12 +691,73 @@ Page({
         this.setData({ isFail: false });
       }, 500);
       console.warn('刷新超时，停止请求响应');
-    }, 8000); // 超时时间 8 秒
+    }, 5000); // 超时时间 5 秒
 
     const gid = this.data.gid; // 当前女孩的 ID
     const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
     const userId = userInfo ? userInfo.userID : null; // 获取 userID
     const updatedRating = this.data.updatedRating; // 获取新的评分
+
+    const initialLikedStatus = this.data.initialLikedStatus; // 初始收藏状态
+    const currentLikedStatus = this.data.detailData.Liked; // 当前收藏状态
+    const initialCardStatus = this.data.initialCardStatus; // 初始签到卡状态
+    const currentCardStatus = this.data.detailData.Voted; // 当前签到卡状态
+    const girlName = this.data.detailData.Name; // 动态获取角色名
+
+    //优先同步收藏夹
+    if (userId && initialLikedStatus !== currentLikedStatus) {
+      try {
+        const action = currentLikedStatus ? 'like' : 'unlike';
+        if (action =='unlike'){//取消收藏
+          // 更新 userFavorites 缓存
+          let favorites = wx.getStorageSync('userFavorites') || [];
+          favorites = favorites.filter((item) => item.girl_id !== gid); // 移除该 girl_id 的记录
+          wx.setStorageSync('userFavorites', favorites);
+        }else{//添加收藏
+          // 更新 userFavorites 缓存
+          let favorites = wx.getStorageSync('userFavorites') || [];
+          const newId = -1*favorites.length; // 获取新 ID，临时随便选一个数，选择个数+1乘以-1，之后到数据库里面会更新。
+          const newFavorite = {
+            id: newId,
+            girl_id: gid,
+            name: girlName,
+            avatarSrc: this.data.detailData.AvatarSrc, // 假设 detailData 包含 AvatarSrc 字段
+            created_at: Math.floor(Date.now() / 1000), // 当前时间戳
+            daysAgo: this.calculateDaysSince(Math.floor(Date.now() / 1000)),//算几天之前
+          };
+          favorites.push(newFavorite); // 添加新记录
+          wx.setStorageSync('userFavorites', favorites);
+        }
+        await updateLikeRecords(userId, gid, action); // 同步收藏状态到后端
+        this.setData({
+          initialLikedStatus:currentLikedStatus,
+        })//更新初始收藏状态
+      } catch (error) {
+        console.error('同步收藏状态到后端失败:', error);
+        // this.setData({isFail:true})
+        // setTimeout(() => {
+        //   this.setData({ isFail: false });
+        // }, 500);
+        // return;
+      }
+    }
+    if (isTimeout) return; // 超时立即中断
+
+    //同步签到卡
+    if (userId && initialCardStatus !== currentCardStatus) {
+      try {
+        await updateCardRecord(userId, gid)//最后发送请求给后台
+      } catch (error) {
+        console.error('同步签到卡状态到后端失败:', error);
+        // this.setData({isFail:true})
+        // setTimeout(() => {
+        //   this.setData({ isFail: false });
+        // }, 500);
+        // return;
+      }
+    }
+
+    if (isTimeout) return; // 超时立即中断
   
     if (gid && userId) {
       // 如果有更新的评分，先同步到后端
@@ -701,6 +769,8 @@ Page({
           console.error('更新评分到后端失败:', error);
         }
       }
+
+      if (isTimeout) return; // 超时立即中断
 
       fetchGirlDetail(gid, userId)
         .then((res) => {
@@ -731,6 +801,7 @@ Page({
           if (isTimeout) return;
           console.error('刷新角色详情失败:', error);
           this.setData({
+            isLoading:false,
             isFail: true, // 显示失败弹窗
             failReason: '信号飞到三次元了'
           });

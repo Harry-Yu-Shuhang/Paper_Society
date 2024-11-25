@@ -10,6 +10,7 @@
   margin-top: 0; /* 顶部无间隙 */
   flex-grow: 1; /* 使容器在页面中扩展 */
   min-height: 100vh; /* 保证填充满整个页面高度 */
+  max-width: 100vh; /* 限制页面宽度 */
 }
 
 .user-info {
@@ -175,13 +176,13 @@
   object-fit: cover;
 }
 
-.leaderboard {
+/* .leaderboard {
   max-width: 100%;
   width: 100%;
   border-radius: 12rpx;
   box-shadow: 0 0 80rpx -20rpx rgba(0, 0, 0, 0.4);
-  overflow-x: hidden; /* 禁止横向滚动 */
-}
+  overflow-x: hidden; /* 禁止横向滚动 
+} */
 
 .leaderboard__profile {
   display: flex;
@@ -284,3 +285,8 @@ body {
 }
 
 /* 公众号样式结束 */
+
+page{
+  overflow-x: hidden;
+  touch-action: pan-y; /* 禁止水平滑动，只允许垂直滑动 */
+}

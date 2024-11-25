@@ -85,23 +85,24 @@ Page({
     });
   },
 
-    /**
+   /**
    * 获取用户收藏的角色
    */
   async loadUserFavorites() {
     const userInfo = wx.getStorageSync('userInfo');
     const userId = userInfo ? userInfo.userID : null;
+    const userFavorites=wx.getStorageSync('userFavorites');
+    let updatedFavoritesList=null;
   
     if (!userId) {
       console.error('用户未登录');
       return;
     }
-  
-    try {
+    try {    
+      if(!userFavorites){
       const response = await fetchUserFavorites(userId);
       const { favorites: favoritesList } = response;
-  
-      const updatedFavoritesList = favoritesList.map(item => ({
+      updatedFavoritesList = favoritesList.map(item => ({
         ...item,
         daysAgo: this.calculateDaysSince(item.created_at)
       }));
@@ -114,11 +115,27 @@ Page({
           return b.created_at - a.created_at;
         }
       });
+    }else{
+      updatedFavoritesList = userFavorites.map(item => ({
+        ...item,
+        daysAgo: this.calculateDaysSince(item.created_at)
+      }));
+      // 根据排序状态排序
+      updatedFavoritesList.sort((a, b) => {
+        if (this.data.isDescending) {
+          return a.created_at - b.created_at;
+        } else {
+          return b.created_at - a.created_at;
+        }
+      });
+    }
   
       this.setData({
         userFavorites: updatedFavoritesList,
         favoritesCount: updatedFavoritesList.length
       });
+      //收藏夹存入缓存
+      wx.setStorageSync('userFavorites',updatedFavoritesList);
     } catch (error) {
       console.error('获取用户收藏失败:', error);
       this.setData({ isFail: true });
@@ -127,11 +144,11 @@ Page({
     }
   },
 
-    /**
+  /**
    * 处理收藏角色点击事件
    */
   onFavoriteTap(event) {
-    console.log("event是:",event)
+    // console.log("event是:",event)
     const id = event.currentTarget.dataset.id;
     wx.navigateTo({
       url: `/packageDetail/girl-detail/girl-detail?gid=${id}`,
@@ -219,6 +236,10 @@ Page({
       cardCount: userInfo.cardCount,
       heatContribution: userInfo.userHot
     });
+    //从缓存读取收藏列表
+    this.loadUserFavorites();
+
+    // wx.setStorageSync('userFavorites',this.data.userFavorites);
   },
 
   /**
@@ -256,26 +277,26 @@ Page({
    * 页面相关事件处理函数--监听用户下拉动作
    */
   async onPullDownRefresh() {
+    // 定义一个变量标记是否超时
+    let isTimeout = false;
+    // 启动超时计时器，5秒后设置超时状态
+    const timeout = setTimeout(() => {
+      isTimeout = true;
+      this.setData({ 
+        isLoading: false, 
+        isFail: true,
+        failReason:'信号似乎不大好喵', 
+      });
+      // 在 500ms 后清除成功或失败状态提示
+      setTimeout(() => {
+        this.setData({ isFail: false });
+      }, 500);
+      console.warn('刷新超时，停止请求响应');
+    }, 5000); // 超时时间 5 秒
     try {
       // 停止下拉刷新动画
       wx.stopPullDownRefresh();
       this.setData({ isLoading: true });
-      // 定义一个变量标记是否超时
-      let isTimeout = false;
-      // 启动超时计时器，5秒后设置超时状态
-      const timeout = setTimeout(() => {
-        isTimeout = true;
-        this.setData({ 
-          isLoading: false, 
-          isFail: true,
-          failReason:'信号似乎不大好喵', 
-        });
-        // 在 500ms 后清除成功或失败状态提示
-        setTimeout(() => {
-          this.setData({ isFail: false });
-        }, 500);
-        console.warn('刷新超时，停止请求响应');
-      }, 8000); // 超时时间 8 秒
 
       // this.onShow()代码
       const userInfo = wx.getStorageSync('userInfo');
