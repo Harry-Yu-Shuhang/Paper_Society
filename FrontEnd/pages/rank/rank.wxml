@@ -62,8 +62,8 @@
     </view>
   </view>
 
-    <!-- 签到弹窗 -->
-    <view wx:if="{{showDailySignModal}}" class="newUserWindow">
+  <!-- 签到弹窗 -->
+  <view wx:if="{{showDailySignModal}}" class="newUserWindow">
     <view class="newUserContent">
       <van-icon 
         name="close" 
@@ -89,13 +89,36 @@
     </view>
   </view>
 
-<!-- <block wx:if="{{showDailySignModal}}">
-  <view class="modal-overlay">
-    <view class="modal">
-      <van-icon name="close" size="24px" class="modal-close" bindtap="closeDailySignModal" />
-      <text class="modal-title">签到成功！</text>
-      <text class="modal-content">签到卡+3</text>
-      <text class="modal-content">确认</text>
+
+<!-- 新用户引导弹窗，修改信息 -->
+<view wx:if="{{showGuideModal}}" class="guideModal">
+  <view class="guideContent">
+    <van-icon 
+      name="close" 
+      size="20px" 
+      class="close-icon" 
+      bindtap="closeGuideModal" 
+    />
+    <view class="guide-text">
+      <text>欢迎新同学加入纸片社！</text>
+      <text>先给自己起一个好听的名字吧！</text>
     </view>
+    <van-button 
+      round 
+      plain 
+      type="info" 
+      size="small" 
+      bind:tap="closeGuideModal" 
+      class="guideButton"
+    >
+      去改名!
+    </van-button>
   </view>
-</block> -->
+</view>
+
+<!-- 引导箭头和遮罩 -->
+<van-overlay show="{{showArrowOverlay}}" z-index="10">
+  <view class="arrow-container">
+    <view class="arrow"></view>
+  </view>
+</van-overlay>

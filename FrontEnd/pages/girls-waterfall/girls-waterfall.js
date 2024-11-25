@@ -25,6 +25,7 @@ Page({
     value: '',  // 搜索关键词
     searchExist: false,  // 搜索结果是否存在
     backupColumns: null, // 用于存储搜索前的 columns 数据
+    showArrowOverlay: false, // 是否显示箭头遮罩层
   },
 
   async loadData(showLoading = true, isRefresh = false) {
@@ -62,6 +63,7 @@ Page({
           this.setData({ columns: [[], []] }); // 重置 columns，这样如果失败了也不清空页面上已经渲染的数据
         }
         await this.renderPage(newPics);
+        if (isTimeout) return;
   
         // 更新渲染过的数据ID
         const newIds = newPics.map(pic => pic.id);
@@ -118,6 +120,7 @@ Page({
   },
   
   async renderPage(picList, isFirst=false) {
+    this.setData({isLoading:true});
     const { columns } = this.data;
     const columnsHeight = columns.map(col => col.reduce((sum, pic) => sum + pic.height, 0));
 
@@ -200,7 +203,7 @@ Page({
       // 从缓存数据中提取已渲染的 ID，并将其存储到 renderedIds
       const initialRenderedIds = initialData.map(item => item.id);
       this.setData({ 
-        renderedIds: initialRenderedIds
+        renderedIds: initialRenderedIds,
       });
       this.renderPage(initialData, true);
     } else {
@@ -216,6 +219,20 @@ Page({
   onPullDownRefresh(){
     wx.stopPullDownRefresh()
     this.loadData(true,true);
+  },
+
+  onShow(){
+    let hasSetName = wx.getStorageSync('hasSetName')
+    if(hasSetName===false){
+      this.setData({
+        showArrowOverlay:true
+      })
+    }
+    if(hasSetName===true){
+      this.setData({
+        showArrowOverlay:false
+      })
+    }
   },
 
    /**

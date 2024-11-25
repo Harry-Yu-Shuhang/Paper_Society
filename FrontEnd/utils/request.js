@@ -141,6 +141,11 @@ function fetchUserFavorites(userId) {
   return sendRequest(`/user/favorites?user_id=${userId}`, 'GET');
 }
 
+// 获取用户详细信息
+function fetchUserInfo(openID) {
+  return sendRequest(`/user/info?open_id=${openID}`, 'GET');
+}
+
 export {
   sendUserInfo,
   fetchHotRankList,
@@ -157,4 +162,5 @@ export {
   updateRateRecords,
   fetchUserRanking,
   fetchUserFavorites,
+  fetchUserInfo,
 };

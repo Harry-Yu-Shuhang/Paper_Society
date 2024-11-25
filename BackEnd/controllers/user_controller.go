@@ -214,3 +214,37 @@ func (u UserController) GetUserFavorites(c *gin.Context) {
 		"favorites": favorites,
 	})
 }
+
+func (u UserController) GetUserInfo(c *gin.Context) {
+	// 从查询参数中获取 open_id
+	openID := c.Query("open_id")
+	if openID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "open_id is required"})
+		return
+	}
+
+	var userInfo models.UserInfo
+	// 根据 open_id 查询用户信息
+	if err := dao.Db.Where("open_id = ?", openID).First(&userInfo).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query user info"})
+		return
+	}
+
+	// 返回查询到的用户信息
+	c.JSON(http.StatusOK, gin.H{
+		"userID":     userInfo.ID,
+		"nickName":   userInfo.NickName,
+		"avatarUrl":  userInfo.AvatarUrl,
+		"cardCount":  userInfo.CardCount,
+		"userHot":    userInfo.UserHot,
+		"createTime": userInfo.CreateTime,
+		"loginTime":  userInfo.LoginTime,
+		"openID":     userInfo.OpenID,
+	})
+}

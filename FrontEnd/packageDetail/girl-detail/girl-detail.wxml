@@ -119,7 +119,7 @@
           size="25"
         />
         <!-- 根据 detailData.MyRate 判断显示星级还是“尚未评分” -->
-        <text class="rate_text">{{ detailData.MyRate ? detailData.MyRate + '分' : '尚未评分' }}</text>
+        <text class="rate_text">{{ detailData.MyRate ? detailData.MyRate + '分' : '0分' }}</text>
       </view>
       <text class="share-text">点击右上角"..." 邀请好友为她助力</text>
     </view>

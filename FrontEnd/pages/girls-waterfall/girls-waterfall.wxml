@@ -41,3 +41,11 @@
     </view>
   </view>
 </view>
+
+
+<!-- 引导箭头和遮罩 -->
+<van-overlay show="{{showArrowOverlay}}" z-index="10">
+  <view class="arrow-container">
+    <view class="arrow"></view>
+  </view>
+</van-overlay>

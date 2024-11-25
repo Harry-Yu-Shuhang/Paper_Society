@@ -30,6 +30,9 @@ Page({
     showNewUserModal: false,  // 是否显示新用户弹窗
     showDailySignModal: false, // 是否显示签到弹窗
     windowAvatar: "/images/Paper_Society.jpg",         // 新用户头像
+    showGuideModal:false,
+    showArrowOverlay: false, // 是否显示箭头遮罩层
+    isNewUser:false,
     // userName:"新用户"
   },
 
@@ -256,6 +259,7 @@ Page({
         // 设置新用户弹窗
         this.setData({
           showNewUserModal: true,
+          isNewUser:true,
         });
         // 更新新用户状态
         userInfo.isNewUser = false;
@@ -308,6 +312,12 @@ Page({
     // 关闭每日签到弹窗
     closeDailySignModal() {
       this.setData({ showDailySignModal: false });
+      if(this.data.isNewUser===true){
+        this.setData({ 
+          showGuideModal: true, // 显示引导弹窗
+          isNewUser:false,
+        });
+      }
     },
 
   async onPullDownRefresh() {
@@ -318,7 +328,7 @@ Page({
     const detailData = wx.getStorageSync('detailData');
     const userInfo = wx.getStorageSync('userInfo');
     try {
-      // 通过缓存中的 `ID` 和 z`userID` 发送请求更新详情数据
+      // 通过缓存中的 `ID` 和 `userID` 发送请求更新详情数据
       const updatedDetail = await fetchGirlDetail(detailData.ID, userInfo.userID);
 
       // 更新缓存和页面数据
@@ -338,4 +348,22 @@ Page({
       }, 800);
     } 
   },
+
+  closeGuideModal() {
+    this.setData({ 
+      showGuideModal: false,
+      showArrowOverlay: true // 显示箭头
+     });
+     wx.setStorageSync('hasSetName', false)
+  },
+
+  onShow(){
+    let hasSetName = wx.getStorageSync('hasSetName')
+    //console.log("hasSetName:",hasSetName)
+    if(hasSetName===true){
+      this.setData({ 
+        showArrowOverlay: false // 隐藏箭头
+      });
+    }
+  }
 });

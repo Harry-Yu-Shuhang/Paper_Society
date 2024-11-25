@@ -1,7 +1,6 @@
 <view class="container">
   <block wx:if="{{!hasUserInfo}}">
     <view class="welcome-new">
-      <!-- <image class="l-avatar" src="/images/avatar/纸片社头像.jpg" mode="aspectFit"/> -->
       <image class="l-avatar" src="/images/Paper_Society.jpg" mode="aspectFit"/>
       
       <text class="hello-new">欢迎光临纸片社！</text>

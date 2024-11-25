@@ -20,5 +20,5 @@ func (a AuthController) GetOpenID(c *gin.Context) {
 	}
 
 	// 返回 openid
-	c.JSON(http.StatusOK, gin.H{"openid": openid})
+	c.JSON(http.StatusOK, gin.H{"openID": openid})
 }

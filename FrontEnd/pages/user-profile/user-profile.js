@@ -343,5 +343,14 @@ Page({
    */
   onShareAppMessage() {
 
-  }
+  },
+
+  // 监听 TabBar 切换事件
+  onTabItemTap(item) {
+    console.log(item)
+    let hasSetname = wx.getStorageSync('hasSetName')
+    if(hasSetname===false){
+      wx.setStorageSync('hasSetName', true)
+    }
+  },
 })

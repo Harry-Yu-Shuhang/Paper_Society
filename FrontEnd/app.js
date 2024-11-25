@@ -10,9 +10,7 @@ App({
     } else {
       wx.cloud.init({
         env: 'prod-4guz1brc55a6d768', // 替换为你的云环境 ID
-        traceUser: true
       });
     }
   },
-  gBaseUrl:"http://t.talelin.com/v2/movie/"
 })

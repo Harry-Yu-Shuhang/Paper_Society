@@ -63,3 +63,49 @@ page {
   color:#666;
   font-weight: 350;
 }
+
+
+/*箭头引导弹窗*/
+.arrow-container {
+  position: absolute;
+  bottom: 45rpx; /* 调整箭头相对于屏幕顶部的距离 */
+  right: 13%; /* 居中 */
+  transform: translateX(-50%); /* 水平居中 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.arrow {
+  width: 30rpx; /* 箭身宽度 */
+  height: 50rpx; /* 箭身高度（更矮胖） */
+  position: relative;
+  background-color: white; /* 箭身颜色 */
+  border-radius: 5rpx; /* 增加圆角使箭身更柔和 */
+  animation: bounce 1.5s infinite; /* 添加轻微弹跳动画 */
+}
+
+.arrow::after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: -40rpx; /* 调整箭头尖端与线段的间距 */
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 30rpx solid transparent; /* 箭头宽度 */
+  border-right: 30rpx solid transparent; /* 箭头宽度 */
+  border-top: 50rpx solid white; /* 箭头颜色：亮红色 */
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10rpx);
+  }
+  60% {
+    transform: translateY(-5rpx);
+  }
+}
+/*箭头引导弹窗结束*/
