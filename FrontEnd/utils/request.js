@@ -146,6 +146,11 @@ function fetchUserInfo(openID) {
   return sendRequest(`/user/info?open_id=${openID}`, 'GET');
 }
 
+// 校验昵称是否重复
+function checkNickname(nickname) {
+  return sendRequest(`/user/checkNickname?nickName=${encodeURIComponent(nickname)}`, 'GET');
+}
+
 export {
   sendUserInfo,
   fetchHotRankList,
@@ -163,4 +168,5 @@ export {
   fetchUserRanking,
   fetchUserFavorites,
   fetchUserInfo,
+  checkNickname
 };

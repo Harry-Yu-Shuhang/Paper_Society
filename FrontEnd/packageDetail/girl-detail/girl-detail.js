@@ -840,6 +840,28 @@ Page({
    * 用户点击右上角分享
    */
   onShareAppMessage() {
-
-  }
+    const userInfo = wx.getStorageSync('userInfo');
+    const detailData = wx.getStorageSync('detailData');
+  
+    // 设置默认分享内容
+    return {
+      title: `${userInfo.nickName} 邀请你一起为 ${detailData.Name} 打call`,
+      path: `/pages/welcome/welcome?inviter=${encodeURIComponent(userInfo.nickName)}&character=${encodeURIComponent(detailData.Name)}&gid=${detailData.ID}`,
+      imageUrl: '', // 使用默认页面截图
+    };
+  },
+  
+  onShareTimeline() {
+    const userInfo = wx.getStorageSync('userInfo');
+    const detailData = wx.getStorageSync('detailData');
+  
+    return {
+      title: `${userInfo.nickName} 邀请你一起为 ${detailData.Name} 打call`,
+      query: {
+        inviter: userInfo.nickName,
+        character: detailData.Name,
+        gid: detailData.ID,
+      },
+    };
+  },
 })

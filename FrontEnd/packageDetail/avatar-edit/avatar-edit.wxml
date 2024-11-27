@@ -1,0 +1,46 @@
+<view class="container" catchtouchmove="stopScroll">
+  <text class="title">纸片社用户信息更新</text>
+  <text class="subtitle">点击头像更换头像，点击输入框更改昵称</text>
+  
+  <!-- 头像选择 -->
+  <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+    <image class="avatar" src="{{avatarUrl}}" />
+  </button>
+
+  <!-- 昵称输入 -->
+  <input
+    class="nickname-input"
+    type="nickname"
+    placeholder="请输入昵称"
+    value="{{userName}}"
+    maxlength=
+    bindblur="onNicknameBlur"
+  />
+  <view class="limit">
+    <van-icon name="info-o" color="#999" size="12px"/>
+    <text class="limit-text">昵称长度限制在8个中文字符(或16个英文字符)以内</text>
+  </view>
+  <view class="limit">
+    <van-icon name="info-o" color="#999" size="12px"/>
+    <text class="limit-text">昵称不能为空, 且只能包含中文、英文、数字、_ 和 -</text>
+  </view>
+  
+
+  <!-- 提交和取消按钮 -->
+  <view class="button-row">
+    <van-button 
+      type="primary" 
+      custom-class="custom-button"
+      bind:tap="onSubmit"
+    >
+      提交更新
+    </van-button>
+    <van-button 
+      type="danger" 
+      custom-class="cancel-button"
+      bind:tap="onCancel"
+    >
+      取消提交
+    </van-button>
+  </view>
+</view>

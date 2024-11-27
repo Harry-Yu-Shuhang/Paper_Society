@@ -24,6 +24,7 @@ Page({
     isLoading:false,
     isDescending: false, // 控制排序的布尔变量,默认新欢优先
     showGongzhonghao: false, // 控制弹窗显示
+    showAvatarOverlay: false,
   },
 
   async getUserRanking() {
@@ -223,6 +224,13 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onShow() {
+    let hasSetname = wx.getStorageSync('hasSetName')
+    if(hasSetname===false){
+      this.setData({
+        showAvatarOverlay: true,
+      });
+      //wx.setStorageSync('hasSetName', true)
+    }
     // 从缓存中读取 userInfo
     const userInfo = wx.getStorageSync('userInfo');
     // 调用封装函数计算加入日期和天数
@@ -342,15 +350,51 @@ Page({
    * 用户点击右上角分享
    */
   onShareAppMessage() {
-
+    const userInfo=wx.getStorageSync('userInfo')
+    // 设置默认分享内容
+    return {
+      title: '', // 分享标题，默认可以替换为你的小程序名称或页面特定标题
+      path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
+      imageUrl: '', // 使用默认页面截图，不设置自定义图片
+      promise: new Promise(resolve => {
+        // 可以在这里动态生成分享内容，如果不需要动态生成，可删除 promise 参数
+        setTimeout(() => {
+          resolve({
+            title: userInfo.nickName+'邀请你一起为爱发电',
+            path: '/pages/welcome/welcome',
+            imageUrl: '', // 使用默认截图
+          });
+        }, 1000); // 1秒延迟模拟异步操作
+      })
+    };
+  },
+  onShareTimeline(){
+    return {
+      title: '加入纸片社，一起为你的二次元白月光发电吧～(っ●ω●)っ',
+      path: '/pages/welcome/welcome',
+      // query: {
+      //   key: value
+      // },
+      // imageUrl: ''
+    }
   },
 
-  // 监听 TabBar 切换事件
-  onTabItemTap(item) {
-    console.log(item)
-    let hasSetname = wx.getStorageSync('hasSetName')
-    if(hasSetname===false){
-      wx.setStorageSync('hasSetName', true)
-    }
+  onTransparentHoleClick() {
+    //console.log('点击了头像引导区域');
+    wx.navigateTo({
+      url: '/packageDetail/avatar-edit/avatar-edit',
+    });
+    // 触发头像点击事件的逻辑
+    this.setData({ 
+      showAvatarOverlay: false,
+    });
+    wx.setStorageSync('hasSetName', true)
+  },
+
+  // 点击头像跳转到填写页面
+  onUserAvatarTap() {
+    wx.navigateTo({
+      url: '/packageDetail/avatar-edit/avatar-edit',
+    });
   },
 })

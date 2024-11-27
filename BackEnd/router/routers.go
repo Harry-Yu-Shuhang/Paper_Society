@@ -22,6 +22,7 @@ func Router() *gin.Engine {
 		user.GET("/ranking", controllers.UserController{}.GetUserRanking)
 		user.GET("/favorites", controllers.UserController{}.GetUserFavorites)
 		user.GET("/info", controllers.UserController{}.GetUserInfo)
+		user.GET("/checkNickname", controllers.UserController{}.CheckNickname)
 	}
 
 	girls := r.Group("/girls")

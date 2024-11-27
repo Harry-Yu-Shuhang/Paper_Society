@@ -84,6 +84,7 @@
             <text class="text-card">签到卡(3张)</text>
             <van-button round plain type="info" size="small" bind:tap="closeDailySignModal" class="acceptBonusButton">开心收下</van-button>
           </view>
+          <text class="text-attention">小贴士:每天北京时间0:00重置签到卡哦</text>
         </view>
       </view>
     </view>
@@ -122,3 +123,41 @@
     <view class="arrow"></view>
   </view>
 </van-overlay>
+
+
+<!-- 去打call弹窗 -->
+<view wx:if="{{showCallModal}}" class="callModal">
+  <view class="callContent">
+    <van-icon
+      name="close"
+      size="20px"
+      class="close-icon"
+      bindtap="closeCallModal"
+    />
+    <view class="call-text">
+      <text>{{callModalData.inviter}}邀请你给{{callModalData.character}} 打call</text>
+    </view>
+    <view class="call-buttons">
+      <van-button
+        round
+        plain
+        type="info"
+        size="small"
+        bindtap="goToCall"
+        class="callButton"
+      >
+        去打call
+      </van-button>
+      <van-button
+        round
+        plain
+        type="default"
+        size="small"
+        bindtap="closeCallModal"
+        class="callButton"
+      >
+        稍后再去
+      </van-button>
+    </view>
+  </view>
+</view>

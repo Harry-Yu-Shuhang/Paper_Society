@@ -39,7 +39,8 @@
     {
       "root": "packageDetail",
       "pages": [
-        "girl-detail/girl-detail"
+        "girl-detail/girl-detail",
+        "avatar-edit/avatar-edit"
       ],
       "independent": true
     }

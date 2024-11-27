@@ -15,6 +15,10 @@ import (
 
 type UserController struct{}
 
+func init() {
+	time.Local, _ = time.LoadLocation("Asia/Shanghai") // 全局设置东八区为默认时区
+}
+
 func (u UserController) CreateUserInfo(c *gin.Context) {
 	var userInfo models.UserInfo
 	if err := utils.BindJSON(c, &userInfo); err != nil {
@@ -30,13 +34,14 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 	var cardCount int
 	var createTime int64
 	var userHot int
+	var loginTime int64
 
 	isSameDayLogin := false
 	if isNewUser {
 		userInfo.CardCount = 6
 		userInfo.CreateTime = time.Now().Unix()
-		userHot = calculateUserHot(userInfo.ID) // 计算新用户的热度
-		userInfo.UserHot = userHot
+		// userHot = calculateUserHot(userInfo.ID) // 计算新用户的热度
+		userInfo.UserHot = 0
 		if err := dao.Db.Create(&userInfo).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save new user info"})
 			return
@@ -44,6 +49,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		userID = userInfo.ID
 		cardCount = userInfo.CardCount
 		createTime = userInfo.CreateTime
+		loginTime = createTime
 	} else {
 		isSameDayLogin = isSameDay(existingUser.LoginTime, userInfo.LoginTime)
 		if !isSameDayLogin {
@@ -62,6 +68,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		userID = existingUser.ID
 		cardCount = existingUser.CardCount
 		createTime = existingUser.CreateTime
+		loginTime = existingUser.LoginTime
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -72,6 +79,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		"userID":     userID,
 		"createTime": createTime,
 		"userHot":    userHot,
+		"loginTime":  loginTime,
 	})
 }
 
@@ -247,4 +255,29 @@ func (u UserController) GetUserInfo(c *gin.Context) {
 		"loginTime":  userInfo.LoginTime,
 		"openID":     userInfo.OpenID,
 	})
+}
+
+func (u UserController) CheckNickname(c *gin.Context) {
+	// 获取查询参数
+	nickname := c.Query("nickName")
+	if nickname == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nickname is required"})
+		return
+	}
+
+	// 查询数据库是否存在重复昵称
+	var count int64
+	if err := dao.Db.Table("user_infos").
+		Where("nick_name = ?", nickname).
+		Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check nickname"})
+		return
+	}
+
+	// 返回是否重复
+	if count > 0 {
+		c.JSON(http.StatusOK, gin.H{"isDuplicate": true, "message": "Nickname already exists"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"isDuplicate": false, "message": "Nickname is available"})
+	}
 }

@@ -69,15 +69,16 @@ page {
 .arrow-container {
   position: absolute;
   bottom: 45rpx; /* 调整箭头相对于屏幕顶部的距离 */
-  right: 13%; /* 居中 */
-  transform: translateX(-50%); /* 水平居中 */
+  right:100rpx;
+  transform: translateX(-50%); /*水平居中*/
   display: flex;
+  flex-direction: column; /* 垂直布局 */
   justify-content: center;
   align-items: center;
 }
 
 .arrow {
-  width: 30rpx; /* 箭身宽度 */
+  width: 25rpx; /* 箭身宽度 */
   height: 50rpx; /* 箭身高度（更矮胖） */
   position: relative;
   background-color: white; /* 箭身颜色 */
@@ -92,9 +93,9 @@ page {
   bottom: -40rpx; /* 调整箭头尖端与线段的间距 */
   left: 50%;
   transform: translateX(-50%);
-  border-left: 30rpx solid transparent; /* 箭头宽度 */
-  border-right: 30rpx solid transparent; /* 箭头宽度 */
-  border-top: 50rpx solid white; /* 箭头颜色：亮红色 */
+  border-left: 25rpx solid transparent; /* 箭头宽度 */
+  border-right: 25rpx solid transparent; /* 箭头宽度 */
+  border-top: 50rpx solid white; /* 箭头颜色：白色 */
 }
 
 @keyframes bounce {

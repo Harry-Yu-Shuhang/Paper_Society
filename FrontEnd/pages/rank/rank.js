@@ -252,29 +252,36 @@ Page({
 
   onLoad() {
     const userInfo = wx.getStorageSync('userInfo'); // 获取缓存中的用户信息
-    // this.setData({userName:userInfo.nickName})
-
+    const invitationData = wx.getStorageSync('invitationData'); // 获取邀请信息
+  
+    // 判断是否显示新用户弹窗或签到弹窗
     if (userInfo) {
       if (userInfo.isNewUser) {
-        // 设置新用户弹窗
         this.setData({
           showNewUserModal: true,
-          isNewUser:true,
+          isNewUser: true,
         });
-        // 更新新用户状态
         userInfo.isNewUser = false;
         wx.setStorageSync('userInfo', userInfo);
       } else if (!userInfo.isSameDay) {
-        // 设置每日签到弹窗
-        this.setData({
-          showDailySignModal: true,
-        });
-
-        // 更新签到状态
+        this.setData({ showDailySignModal: true });
         userInfo.isSameDay = true;
         wx.setStorageSync('userInfo', userInfo);
       }
     }
+  
+    // 如果存在 invitationData，显示去打call弹窗
+    if (invitationData) {
+      this.setData({
+        showCallModal: true, // 显示 "去打call" 弹窗
+        callModalData: {
+          inviter: invitationData.inviter,
+          character: invitationData.character,
+          gid: invitationData.id,
+        },
+      });
+    }
+  
     // 加载排行榜数据或缓存
     const hotRankCache = wx.getStorageSync('hotRankData');
     const initialGirlsCache = wx.getStorageSync('initialGirlsData');
@@ -295,8 +302,7 @@ Page({
     if (!initialGirlsCache) {
       preloadRankData();
     }
-    if(!userFavorites){
-      // 获取用户收藏列表
+    if (!userFavorites) {
       this.loadUserFavorites();
     }
   },
@@ -365,5 +371,72 @@ Page({
         showArrowOverlay: false // 隐藏箭头
       });
     }
-  }
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage() {
+    const userInfo=wx.getStorageSync('userInfo')
+    // 设置默认分享内容
+    return {
+      title: '', // 分享标题，默认可以替换为你的小程序名称或页面特定标题
+      path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
+      imageUrl: '', // 使用默认页面截图，不设置自定义图片
+      promise: new Promise(resolve => {
+        // 可以在这里动态生成分享内容，如果不需要动态生成，可删除 promise 参数
+        setTimeout(() => {
+          resolve({
+            title: userInfo.nickName+'邀请你一起为爱发电',
+            path: '/pages/welcome/welcome',
+            imageUrl: '', // 使用默认截图
+          });
+        }, 1000); // 1秒延迟模拟异步操作
+      })
+    };
+  },
+  onShareTimeline(){
+    return {
+      title: '加入纸片社，一起为你的二次元白月光发电吧～(っ●ω●)っ',
+      path: '/pages/welcome/welcome',
+      // query: {
+      //   key: value
+      // },
+      // imageUrl: ''
+    }
+  },
+
+
+
+    // 前往角色页面
+    goToCall() {
+      // const { gid } = this.data.callModalData;
+      const invitationData=wx.getStorageSync('invitationData');
+      const gid = invitationData.gid
+      // 前往指定角色页面
+      wx.navigateTo({
+        url: `/packageDetail/girl-detail/girl-detail?gid=${gid}`,
+      });
+  
+      // 关闭弹窗
+      this.setData({ showCallModal: false });
+  
+      // 清除缓存中的 invitationData
+      wx.removeStorageSync('invitationData');
+    },
+  
+    // 关闭去打call弹窗
+    closeCallModal() {
+      this.setData({ showCallModal: false });
+  
+      // 清除缓存中的 invitationData
+      wx.removeStorageSync('invitationData');
+  
+      // 显示引导弹窗
+      if (this.data.isNewUser) {
+        this.setData({
+          showGuideModal: true,
+        });
+      }
+    },
 });

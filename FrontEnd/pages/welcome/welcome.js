@@ -58,14 +58,30 @@ Page({
     hasUserInfo: false, // 是否已经有用户信息
   },
 
-  async onLoad() {
+  async onLoad(options) {
+    const { inviter, character, gid } = options;
+    if (inviter && character && gid) {
+      console.log(inviter,character,gid)
+      // 将邀请信息存入缓存
+      const invitationData = {
+        inviter,
+        character,
+        gid: Number(gid), // 转换为数字存储
+      };
+      wx.setStorageSync('invitationData', invitationData);
+      console.log('邀请信息已存储:', invitationData);
+    }
+
+
+
     let userInfo = wx.getStorageSync('userInfo') || {}; // 获取缓存中的 userInfo 或初始化为空对象
     // 确保 userInfo 是对象
     if (typeof userInfo !== 'object' || userInfo === null) {
       userInfo = {};
     }
+    // console.log("userInfo是",userInfo)
     // 如果 openid 不存在，获取最新的用户信息
-    if (!userInfo.openID) {
+    if (!userInfo.openID || userInfo.openID==="") {
       try {
         const result = await wx.cloud.callContainer({
           config: {
@@ -102,20 +118,31 @@ Page({
     }
     // 如果 openid 存在，获取最新的用户信息
     if (userInfo.openID) {
-      if(userInfo.isNewUser===false){
-        this.setData({
-          userInfo,
-          hasUserInfo:true
-        })
-      }
       try {
         const freshUserInfo = await fetchUserInfo(userInfo.openID);
         if (!freshUserInfo.error) {
+          // 更新 userInfo 中的字段，仅更新 freshUserInfo 中存在的字段
+          const updatedUserInfo = { ...userInfo }; // 保留原有字段
+          Object.keys(freshUserInfo).forEach((key) => {
+            updatedUserInfo[key] = freshUserInfo[key]; // 更新字段
+          });
+          // 更新到页面数据
           this.setData({
-            userInfo: freshUserInfo,
+            userInfo: updatedUserInfo,
             hasUserInfo: true,
           });
           this.handleUserLogin();
+        }else{
+          //新用户
+          //let newCache = userInfo
+          // console.log("newCache是",newCache)
+          // 清空所有缓存
+          wx.clearStorageSync();
+          const updatedUserInfo = { openID: userInfo.openID }; // 仅保留 openID
+          wx.setStorageSync('userInfo', updatedUserInfo);
+          this.setData({
+            userInfo:updatedUserInfo,
+          })
         }
       } catch (error) {
         console.error("获取用户信息失败:", error);
@@ -202,6 +229,8 @@ Page({
     try {
       const response = await sendUserInfo(userInfo);
       if (response && typeof response === 'object') {
+        // console.log("userInfo是:",userInfo)
+        // console.log("response是:",response)
         // 更新 userInfo 对象的属性而不重新赋值整个对象(因为userInfo是const)
         userInfo.userID = response.userID || userInfo.userID;
         userInfo.cardCount = response.cardCount ?? 0; // 如果未定义，默认为 0
@@ -237,4 +266,36 @@ Page({
       });
     }, delayTime);
   },
+
+  onShareAppMessage() {
+    const userInfo=wx.getStorageSync('userInfo')
+    // 设置默认分享内容
+    return {
+      title: '', // 分享标题，默认可以替换为你的小程序名称或页面特定标题
+      path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
+      imageUrl: '', // 使用默认页面截图，不设置自定义图片
+      promise: new Promise(resolve => {
+        // 可以在这里动态生成分享内容，如果不需要动态生成，可删除 promise 参数
+        setTimeout(() => {
+          resolve({
+            title: userInfo.nickName+'邀请你一起为爱发电',
+            path: '/pages/welcome/welcome',
+            imageUrl: '', // 使用默认截图
+          });
+        }, 1000); // 1秒延迟模拟异步操作
+      })
+    };
+  },
+  onShareTimeline(){
+    return {
+      title: '加入纸片社，一起为你的二次元白月光发电吧～(っ●ω●)っ',
+      path: '/pages/welcome/welcome',
+      // query: {
+      //   key: value
+      // },
+      // imageUrl: ''
+    }
+  },
+
+  
 });

@@ -8,11 +8,12 @@
 <!-- 用户信息卡片 -->
 <view class="user-settings">
   <view class="user-info">
-    <image class="avatar" src="{{avatarUrl}}" />
+    <image class="avatar" src="{{avatarUrl}}" bind:tap="onUserAvatarTap"/>
     <view class="user-details">
       <text class="username">{{userName}}</text>
       <text class="join-days">{{joinDateString}} 加入纸片社</text>
       <text class="join-days">今天是你加入纸片社的第{{daysJoined}}天</text>
+      <text class="click-avatar">(点击左侧头像,修改昵称和头像图片)</text>
     </view>
   </view>
 
@@ -98,3 +99,12 @@
     </recycle-item>
   </recycle-view>
 </view>
+
+<!-- 引导箭头和遮罩 -->
+<van-overlay show="{{showAvatarOverlay}}" z-index="10" custom-class="custom-overlay">
+  <view class="transparent-hole" bind:tap="onTransparentHoleClick"></view>
+  <view class="arrow-avatar-container">
+    <!-- 箭头 -->
+    <view class="arrow"></view>
+  </view>
+</van-overlay>

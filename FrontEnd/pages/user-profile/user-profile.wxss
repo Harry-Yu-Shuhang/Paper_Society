@@ -11,6 +11,7 @@
   flex-grow: 1; /* 使容器在页面中扩展 */
   min-height: 100vh; /* 保证填充满整个页面高度 */
   max-width: 100vh; /* 限制页面宽度 */
+  overflow: hidden; /* 防止溢出 */
 }
 
 .user-info {
@@ -28,8 +29,8 @@
   height: 160rpx;
   border-radius: 50%;
   margin-right: 30rpx;
-  /* border: 3px solid #fff; */
   min-width: 160rpx;
+  box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
 .user-details {
@@ -50,6 +51,12 @@
 .join-days {
   font-size: 14px;
   color: #666;
+  letter-spacing: 1px;
+}
+
+.click-avatar{
+  font-size: 10px;
+  color: #999;
   letter-spacing: 1px;
 }
 
@@ -290,3 +297,81 @@ page{
   overflow-x: hidden;
   touch-action: pan-y; /* 禁止水平滑动，只允许垂直滑动 */
 }
+
+
+/*箭头引导开始*/
+
+/* 自定义遮罩层，挖一个透明洞 */
+.custom-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* 半透明黑色背景 */
+  mask: radial-gradient(circle 80rpx at 130rpx 105rpx, transparent 99%, black 100%);
+  -webkit-mask: radial-gradient(circle 80rpx at 130rpx 105rpx, transparent 99%, black 100%);
+  z-index: 10;
+  pointer-events: none; /* 不响应遮罩层的点击事件 */
+}
+
+/* 透明洞的实际点击区域 */
+.transparent-hole {
+  position: absolute;
+  top: 25rpx; /* 洞的位置 */
+  left: 50rpx; /* 洞的位置 */
+  width: 160rpx; /* 与洞的直径一致 */
+  height: 160rpx; /* 与洞的直径一致 */
+  border-radius: 50%;
+  background-color: transparent; /* 保持透明 */
+  pointer-events: auto; /* 使透明洞区域可点击 */
+  z-index: 20; /* 确保透明洞在遮罩层之上 */
+}
+
+/* 箭头容器 */
+.arrow-avatar-container {
+  position: absolute;
+  top: 250rpx; /* 调整箭头位置 */
+  left: 118rpx; /* 调整箭头位置 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 箭头样式 */
+.arrow {
+  width: 25rpx;
+  height: 50rpx;
+  position: relative;
+  background-color: white;
+  border-radius: 5rpx;
+  animation: bounce 1.5s infinite;
+}
+
+.arrow::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: -40rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 25rpx solid transparent;
+  border-right: 25rpx solid transparent;
+  border-bottom: 50rpx solid white;
+}
+
+/* 弹跳动画 */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10rpx);
+  }
+  60% {
+    transform: translateY(-5rpx);
+  }
+}
+
+/*箭头引导结束*/
