@@ -74,8 +74,6 @@ Page({
       console.log('邀请信息已存储:', invitationData);
     }
 
-
-
     let userInfo = wx.getStorageSync('userInfo') || {}; // 获取缓存中的 userInfo 或初始化为空对象
     // 确保 userInfo 是对象
     if (typeof userInfo !== 'object' || userInfo === null) {
@@ -116,6 +114,7 @@ Page({
           showCancel: false,
         });
         this.setData({hasUserInfo:false})
+        return;
       }
     }
     // 如果 openid 存在，获取最新的用户信息
@@ -154,6 +153,7 @@ Page({
           content: "请检查网络连接或稍后重试。",
           showCancel: false,
         });
+        return;
       }
     }
   },
@@ -199,29 +199,47 @@ Page({
 
   async authorizeUser() {
     try {
-      const userInfo = this.data.userInfo || {};
-      // if (userInfo.isNewUser===true){
-        userInfo.nickName = "新同学";
-        this.setData({
-          hasUserInfo:true,
-          userInfo,
-        });
-        const profileRes = await wx.getUserProfile({ desc: '用于身份验证' });
-        const { nickName, avatarUrl } = profileRes.userInfo;
-        userInfo.avatarUrl = avatarUrl;
-        this.setData({
-          userInfo,
-        })
-      //}
-      // 处理登录逻辑
+      // 确保 userInfo 的完整性
+      let userInfo = wx.getStorageSync('userInfo') || {};
+      userInfo = {
+        userID: userInfo.userID ?? null,
+        avatarUrl: userInfo.avatarUrl ?? "",
+        cardCount: userInfo.cardCount ?? 0,
+        isNewUser: userInfo.isNewUser ?? false,
+        isSameDay: userInfo.isSameDay ?? false,
+        nickName: userInfo.nickName ?? "",//新同学
+        openID: userInfo.openID ?? "",
+        userHot: userInfo.userHot ?? 0,
+        createTime: userInfo.createTime ?? 0,
+      };
+  
+      this.setData({
+        hasUserInfo: true,
+        userInfo,
+      });
+  
+      // 获取用户头像和昵称
+      const profileRes = await wx.getUserProfile({ desc: '用于身份验证' });
+      const { nickName, avatarUrl } = profileRes.userInfo;
+      userInfo.avatarUrl = avatarUrl;
+  
+      // 更新 userInfo
+      this.setData({ userInfo });
+      wx.setStorageSync('userInfo', userInfo);
+  
+      // 登录逻辑
       this.handleUserLogin();
     } catch (err) {
-      console.error('授权失败:', err);
+      console.error("授权失败:", err);
       wx.showModal({
-        title: '请授予权限',
-        content: '没身份不可以去二次元哦!',
+        title: "登陆失败",
+        content: "网络连接失败",
         showCancel: false,
       });
+      this.setData({
+        hasUserInfo: false,
+      });
+      return;
     }
   },
 
@@ -231,24 +249,54 @@ Page({
     try {
       const openID = userInfo.openID;
       if (!openID) {
-          console.error('OpenID 为空，无法完成注册流程');
-          wx.showToast({
-            title: '网络连接失败',
-            icon: 'none'
-          })
+        try {
+          const result = await wx.cloud.callContainer({
+            config: {
+              env: 'prod-4guz1brc55a6d768', // 替换为云托管环境ID
+            },
+            path: '/api/getOpenID', // 替换为后端路由路径
+            method: 'GET',
+            header: {
+              'X-WX-SERVICE': 'golang-5kg8', // 替换为云托管服务的名称
+            },
+          });
+      
+          if (result?.data?.openID) {
+            userInfo.openID = result.data.openID; // 更新或添加 openid 字段
+            wx.setStorageSync('userInfo', userInfo); // 保留其他字段并更新缓存
+            this.setData({ userInfo });
+          } else {
+            console.error('Failed to fetch openid:', result);
+            wx.showModal({
+              title: 'Error',
+              content: '获取 openid 失败，请检查云托管配置。',
+              showCancel: false,
+            });
+          }
+        } catch (error) {
+          console.error('获取 OpenID 失败:', error);
+          wx.showModal({
+            title: '登陆失败',
+            content: '请检查网络或稍后重试。',
+            showCancel: false,
+          });
           this.setData({hasUserInfo:false})
           return;
+        }
       }
       const response = await sendUserInfo(userInfo);
       if (response && typeof response === 'object') {
-        // console.log("userInfo是:",userInfo)
-        // console.log("response是:",response)
+        //console.log("userInfo是:",userInfo)
+        //console.log("response是:",response)
         // 更新 userInfo 对象的属性而不重新赋值整个对象(因为userInfo是const)
         userInfo.userID = response.userID || userInfo.userID;
         userInfo.cardCount = response.cardCount ?? 0; // 如果未定义，默认为 0
         userInfo.isNewUser = response.isNewUser !== undefined ? response.isNewUser : userInfo.isNewUser;
         userInfo.isSameDay = response.isSameDay !== undefined ? response.isSameDay : userInfo.isSameDay;
         userInfo.nickName = response.nickName || userInfo.nickName;
+        // if(userInfo.isNewUser===true){
+        //   userInfo.nickName=userInfo.nickName+String(userInfo.userID)
+        // }
         userInfo.avatarUrl = response.avatarUrl || userInfo.avatarUrl;
         userInfo.createTime = response.createTime || userInfo.createTime;
         userInfo.userHot = response.userHot?? 0; // 如果未定义，默认为 0;
@@ -269,6 +317,7 @@ Page({
         hasUserInfo: false,
       })
       console.error('请求失败:', error);
+      return;
     }
 
     // 延迟跳转到排行榜页面

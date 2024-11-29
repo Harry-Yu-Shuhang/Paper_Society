@@ -31,6 +31,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 	var createTime int64
 	var userHot int
 	var loginTime int64
+	var nickName string
 
 	isSameDayLogin := false
 	if isNewUser {
@@ -42,10 +43,19 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save new user info"})
 			return
 		}
+
+		// 更新昵称为 "新用户" + ID
+		userInfo.NickName = fmt.Sprintf("新同学%d", userInfo.ID)
+		if err := dao.Db.Model(&userInfo).Update("nick_name", userInfo.NickName).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user nickname"})
+			return
+		}
+
 		userID = userInfo.ID
 		cardCount = userInfo.CardCount
 		createTime = userInfo.CreateTime
 		loginTime = createTime
+		nickName = userInfo.NickName
 	} else {
 		isSameDayLogin = isSameDay(existingUser.LoginTime, userInfo.LoginTime)
 		if !isSameDayLogin {
@@ -65,6 +75,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		cardCount = existingUser.CardCount
 		createTime = existingUser.CreateTime
 		loginTime = existingUser.LoginTime
+		nickName = existingUser.NickName
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -76,6 +87,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		"createTime": createTime,
 		"userHot":    userHot,
 		"loginTime":  loginTime,
+		"nickName":   nickName,
 	})
 }
 
