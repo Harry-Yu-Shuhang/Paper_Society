@@ -1,4 +1,3 @@
-// pages/welcome/welcome.js
 import { sendUserInfo, fetchWaterFallList, fetchUserInfo} from '../../utils/request';
 import { baseURL } from '../../utils/common_data';
 
