@@ -202,7 +202,10 @@ Page({
       if (isTimeout) return;
 
       if (res.data.length) {
-        this.setData({ columns: [[], []], searchExist: true }); // 重置列并标记有搜索结果
+        this.setData({ 
+          columns: [[], []],
+          searchExist: true 
+        }); // 重置列并标记有搜索结果
         await this.renderPage(res.data);
       } else {
         this.setData({ isFail: true, failReason: "没有找到匹配的结果" });
@@ -251,6 +254,13 @@ Page({
   },
 
   onLoad() {
+    const userInfo = wx.getStorageSync('userInfo'); // 获取缓存中的用户信息
+    if(!userInfo.createTime){
+      wx.redirectTo({
+        url: '/pages/welcome/welcome',
+      })
+      return;
+    }
     // 检查缓存中是否有初始数据
     const initialData = wx.getStorageSync('initialGirlsData');
     if (initialData && initialData.length) {
@@ -267,11 +277,17 @@ Page({
 
   // 触底时触发请求下一组数据
   onReachBottom() {
+    if (this.data.searchExist){
+      return;
+    }
     this.loadData(); 
   },
 
   onPullDownRefresh(){
     wx.stopPullDownRefresh()
+    if(this.data.searchExist){
+      return;
+    }
     this.loadData(true,true);
   },
 
@@ -289,32 +305,35 @@ Page({
     }
   },
 
-  /**
+    /**
    * 用户点击右上角分享
    */
   onShareAppMessage() {
     const userInfo=wx.getStorageSync('userInfo')
-    // 设置默认分享内容
+    const promise = new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          userName: 'gh_e0b65c8a9341',  
+          path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
+          withShareTicket: true,
+          miniprogramType: 0,
+          title: userInfo.nickName+'邀请你加入纸片社',
+        })
+      }, 2000)
+    })
     return {
-      title: '', // 分享标题，默认可以替换为你的小程序名称或页面特定标题
+      userName: 'gh_e0b65c8a9341',  
       path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
-      imageUrl: '', // 使用默认页面截图，不设置自定义图片
-      promise: new Promise(resolve => {
-        // 可以在这里动态生成分享内容，如果不需要动态生成，可删除 promise 参数
-        setTimeout(() => {
-          resolve({
-            title: userInfo.nickName+'邀请你一起为爱发电',
-            path: '/pages/welcome/welcome',
-            imageUrl: '', // 使用默认截图
-          });
-        }, 1000); // 1秒延迟模拟异步操作
-      })
-    };
+      withShareTicket: true,
+      miniprogramType: 0,
+      title: userInfo.nickName+'邀请你加入纸片社',
+      promise 
+    }
+
   },
   onShareTimeline(){
     return {
-      title: '加入纸片社，一起为你的二次元白月光发电吧～(っ●ω●)っ',
-      path: '/pages/welcome/welcome',
+      title: '加入纸片社，一起为你最爱的二次元老婆们发电吧～(っ●ω●)っ',
       // query: {
       //   key: value
       // },

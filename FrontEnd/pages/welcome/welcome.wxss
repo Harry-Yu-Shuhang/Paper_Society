@@ -7,6 +7,7 @@
   /* 水平居中 */
   align-items: center;
   background-color: #b3d4db;
+  overflow: hidden; /* 防止溢出 */
 }
 
 .hello-motto{
@@ -30,6 +31,8 @@
   background-color: #b3d4db !important;
   border-radius: 10rpx !important;
   margin-top:25rpx;
+  /* 强制不换行 */
+  white-space:nowrap;
 }
 
 .l-avatar{

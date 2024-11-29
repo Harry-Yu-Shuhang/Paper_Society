@@ -225,14 +225,13 @@ Page({
    */
   onShow() {
     let hasSetname = wx.getStorageSync('hasSetName')
+    let userInfo = wx.getStorageSync('userInfo')
     if(hasSetname===false){
       this.setData({
         showAvatarOverlay: true,
       });
       //wx.setStorageSync('hasSetName', true)
     }
-    // 从缓存中读取 userInfo
-    const userInfo = wx.getStorageSync('userInfo');
     // 调用封装函数计算加入日期和天数
     const { joinDateString, daysJoined } = this.calculateJoinDetails(userInfo.createTime);
     // 设置数据
@@ -261,6 +260,13 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onLoad() {
+    let userInfo = wx.getStorageSync('userInfo')
+    if(!userInfo.createTime){
+      wx.redirectTo({
+        url: '/pages/welcome/welcome',
+      })
+      return;
+    }
     // 获取用户排名数据
     this.getUserRanking();
     // 获取用户收藏列表
@@ -351,27 +357,30 @@ Page({
    */
   onShareAppMessage() {
     const userInfo=wx.getStorageSync('userInfo')
-    // 设置默认分享内容
+    const promise = new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          userName: 'gh_e0b65c8a9341',  
+          path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
+          withShareTicket: true,
+          miniprogramType: 0,
+          title: userInfo.nickName+'邀请你加入纸片社',
+        })
+      }, 2000)
+    })
     return {
-      title: '', // 分享标题，默认可以替换为你的小程序名称或页面特定标题
+      userName: 'gh_e0b65c8a9341',  
       path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
-      imageUrl: '', // 使用默认页面截图，不设置自定义图片
-      promise: new Promise(resolve => {
-        // 可以在这里动态生成分享内容，如果不需要动态生成，可删除 promise 参数
-        setTimeout(() => {
-          resolve({
-            title: userInfo.nickName+'邀请你一起为爱发电',
-            path: '/pages/welcome/welcome',
-            imageUrl: '', // 使用默认截图
-          });
-        }, 1000); // 1秒延迟模拟异步操作
-      })
-    };
+      withShareTicket: true,
+      miniprogramType: 0,
+      title: userInfo.nickName+'邀请你加入纸片社',
+      promise 
+    }
+
   },
   onShareTimeline(){
     return {
-      title: '加入纸片社，一起为你的二次元白月光发电吧～(っ●ω●)っ',
-      path: '/pages/welcome/welcome',
+      title: '加入纸片社，一起为你最爱的二次元老婆们发电吧～(っ●ω●)っ',
       // query: {
       //   key: value
       // },

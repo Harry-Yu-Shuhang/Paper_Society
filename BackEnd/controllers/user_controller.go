@@ -15,10 +15,6 @@ import (
 
 type UserController struct{}
 
-func init() {
-	time.Local, _ = time.LoadLocation("Asia/Shanghai") // 全局设置东八区为默认时区
-}
-
 func (u UserController) CreateUserInfo(c *gin.Context) {
 	var userInfo models.UserInfo
 	if err := utils.BindJSON(c, &userInfo); err != nil {
@@ -121,9 +117,22 @@ func calculateUserHot(userID int) int {
 }
 
 // isSameDay 检查两个 UNIX 时间戳是否在同一天
+// func isSameDay(t1, t2 int64) bool {
+// 	y1, m1, d1 := time.Unix(t1, 0).Date()
+// 	y2, m2, d2 := time.Unix(t2, 0).Date()
+// 	return y1 == y2 && m1 == m2 && d1 == d2
+// }
+
+// isSameDay 检查两个 UNIX 时间戳是否在同一天（东八区）
 func isSameDay(t1, t2 int64) bool {
-	y1, m1, d1 := time.Unix(t1, 0).Date()
-	y2, m2, d2 := time.Unix(t2, 0).Date()
+	// 定义东八区时区
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		loc = time.FixedZone("CST", 8*3600) // 如果加载失败，使用固定的东八区时间
+	}
+
+	y1, m1, d1 := time.Unix(t1, 0).In(loc).Date()
+	y2, m2, d2 := time.Unix(t2, 0).In(loc).Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
 

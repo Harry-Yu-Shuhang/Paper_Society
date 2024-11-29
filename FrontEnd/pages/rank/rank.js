@@ -1,4 +1,4 @@
-import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail, fetchWaterFallList, fetchUserFavorites } from '../../utils/request';
+import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail, fetchWaterFallList, fetchUserFavorites, sendUserInfo } from '../../utils/request';
 let rankType = 'hotRank';
 
 // 预加载角色库数据
@@ -33,6 +33,7 @@ Page({
     showGuideModal:false,
     showArrowOverlay: false, // 是否显示箭头遮罩层
     isNewUser:false,
+    showCallModal:false,
     // userName:"新用户"
   },
 
@@ -253,6 +254,13 @@ Page({
   onLoad() {
     const userInfo = wx.getStorageSync('userInfo'); // 获取缓存中的用户信息
     const invitationData = wx.getStorageSync('invitationData'); // 获取邀请信息
+
+    if(!userInfo.createTime){
+      wx.redirectTo({
+        url: '/pages/welcome/welcome',
+      })
+      return;
+    }
   
     // 判断是否显示新用户弹窗或签到弹窗
     if (userInfo) {
@@ -267,20 +275,19 @@ Page({
         this.setData({ showDailySignModal: true });
         userInfo.isSameDay = true;
         wx.setStorageSync('userInfo', userInfo);
+      }else if (invitationData) {// 如果存在 invitationData，显示去打call弹窗
+        this.setData({
+          showCallModal: true, // 显示 "去打call" 弹窗
+          callModalData: {
+            inviter: invitationData.inviter,
+            character: invitationData.character,
+            gid: invitationData.gid,
+          },
+        });
       }
     }
   
-    // 如果存在 invitationData，显示去打call弹窗
-    if (invitationData) {
-      this.setData({
-        showCallModal: true, // 显示 "去打call" 弹窗
-        callModalData: {
-          inviter: invitationData.inviter,
-          character: invitationData.character,
-          gid: invitationData.id,
-        },
-      });
-    }
+    
   
     // 加载排行榜数据或缓存
     const hotRankCache = wx.getStorageSync('hotRankData');
@@ -318,7 +325,17 @@ Page({
     // 关闭每日签到弹窗
     closeDailySignModal() {
       this.setData({ showDailySignModal: false });
-      if(this.data.isNewUser===true){
+      const invitationData = wx.getStorageSync('invitationData'); // 获取邀请信息
+      if(invitationData){
+        this.setData({
+          showCallModal: true, // 显示 "去打call" 弹窗
+          callModalData: {
+            inviter: invitationData.inviter,
+            character: invitationData.character,
+            gid: invitationData.gid,
+          },
+        });
+      }else if(this.data.isNewUser===true){
         this.setData({ 
           showGuideModal: true, // 显示引导弹窗
           isNewUser:false,
@@ -363,7 +380,7 @@ Page({
      wx.setStorageSync('hasSetName', false)
   },
 
-  onShow(){
+  async onShow(){
     let hasSetName = wx.getStorageSync('hasSetName')
     //console.log("hasSetName:",hasSetName)
     if(hasSetName===true){
@@ -371,43 +388,65 @@ Page({
         showArrowOverlay: false // 隐藏箭头
       });
     }
+
+    //新增：每次onshow都更新每日签到状态
+    const userInfo = wx.getStorageSync('userInfo');
+    try {
+      const response = await sendUserInfo(userInfo);
+      if (response && typeof response === 'object') {
+        // 只更新 isSameDay字段，保留其他字段
+        if (response.isSameDay !== undefined) {
+          userInfo.isSameDay = response.isSameDay;
+        }
+        wx.setStorageSync('userInfo', userInfo);
+      } else {
+        console.error("Invalid response structure:", response);
+      }
+    } catch (error) {
+      console.error('请求失败:', error);
+    }
+    if (!userInfo.isSameDay && !userInfo.isNewUser) {
+      this.setData({ showDailySignModal: true });
+      userInfo.isSameDay = true;
+      wx.setStorageSync('userInfo', userInfo);
+    }
   },
 
-  /**
+    /**
    * 用户点击右上角分享
    */
   onShareAppMessage() {
     const userInfo=wx.getStorageSync('userInfo')
-    // 设置默认分享内容
+    const promise = new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          userName: 'gh_e0b65c8a9341',  
+          path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
+          withShareTicket: true,
+          miniprogramType: 0,
+          title: userInfo.nickName+'邀请你加入纸片社',
+        })
+      }, 2000)
+    })
     return {
-      title: '', // 分享标题，默认可以替换为你的小程序名称或页面特定标题
+      userName: 'gh_e0b65c8a9341',  
       path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
-      imageUrl: '', // 使用默认页面截图，不设置自定义图片
-      promise: new Promise(resolve => {
-        // 可以在这里动态生成分享内容，如果不需要动态生成，可删除 promise 参数
-        setTimeout(() => {
-          resolve({
-            title: userInfo.nickName+'邀请你一起为爱发电',
-            path: '/pages/welcome/welcome',
-            imageUrl: '', // 使用默认截图
-          });
-        }, 1000); // 1秒延迟模拟异步操作
-      })
-    };
+      withShareTicket: true,
+      miniprogramType: 0,
+      title: userInfo.nickName+'邀请你加入纸片社',
+      promise 
+    }
+
   },
   onShareTimeline(){
     return {
-      title: '加入纸片社，一起为你的二次元白月光发电吧～(っ●ω●)っ',
-      path: '/pages/welcome/welcome',
+      title: '加入纸片社，一起为你最爱的二次元老婆们发电吧～(っ●ω●)っ',
       // query: {
       //   key: value
       // },
       // imageUrl: ''
     }
   },
-
-
-
     // 前往角色页面
     goToCall() {
       // const { gid } = this.data.callModalData;

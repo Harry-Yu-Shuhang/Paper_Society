@@ -33,7 +33,7 @@
       />
       <text class="stat-value">{{cardCount}}</text>
       <text class="stat-text">{{computedCardText}}</text>
-      <text class="stat-over-user">(超越{{cardPercent}}%的用户)</text>
+      <text class="stat-over-user">(超越{{cardPercent}}%用户)</text>
     </view>
 
     <!-- 热度贡献统计 -->
@@ -46,7 +46,7 @@
         size="16"/>
       <text class="stat-value">{{heatContribution}}</text>
       <text class="stat-text">{{computedHotText}}</text>
-      <text class="stat-over-user">(超越{{hotPercent}}%的用户)</text>
+      <text class="stat-over-user">(超越{{hotPercent}}%用户)</text>
     </view>
   </view>
 

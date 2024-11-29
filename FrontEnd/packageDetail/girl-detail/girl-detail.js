@@ -1,4 +1,5 @@
 import * as echarts from '../../components/ec-canvas/echarts';
+//import * as echarts from 'echarts';
 
 import {fetchGirlDetail, updateCardRecord, updateInfos, increaseViews, updateLikeRecords, updateRateRecords} from '../../utils/request';
 
@@ -454,76 +455,80 @@ Page({
     const userInfo = wx.getStorageSync('userInfo'); // 获取用户信息
     const userId = userInfo ? userInfo.userID : null; // 获取 userID
   
+    // 判断是否通过分享参数跳转
+    const inviter = options.inviter;
+    const character = options.character;
+  
+    if (inviter && character && gid) {
+      wx.redirectTo({
+        url: `/pages/welcome/welcome?inviter=${inviter}&character=${character}&gid=${gid}`
+      });
+      return; // 防止后续逻辑执行
+    }
+  
+    // 正常页面加载逻辑
     if (!isNaN(gid)) {
       this.setData({
         gid: gid // 将 gid 设置到 data 中
       });
+  
       // 检查缓存是否有匹配的 detailData
       const cachedDetailData = wx.getStorageSync('detailData');
       if (cachedDetailData && cachedDetailData.ID === gid) {
-        // 如果缓存中存在且ID匹配，直接使用缓存数据
         this.setData({
           detailData: cachedDetailData,
           RateNum: cachedDetailData.RateNum.reduce((acc, curr) => acc + curr, 0),
           initialLikedStatus: cachedDetailData.Liked, // 记录初始收藏状态
-          initialCardStatus: cachedDetailData.Voted, // 记录初始收藏状态
+          initialCardStatus: cachedDetailData.Voted, // 记录初始签到卡状态
         });
+        this.updateCharts(); // 更新图表数据
       } else {
-        this.setData({isLoading:true})
         // 如果缓存不存在或ID不匹配，发起请求并存入缓存
-        fetchGirlDetail(gid, userId).then((res) => {
+        this.setData({ isLoading: true });
+        try {
+          const res = await fetchGirlDetail(gid, userId);
           if (res && res.data) {
             this.setData({
               detailData: res.data,
               RateNum: res.data.RateNum.reduce((acc, curr) => acc + curr, 0),
               initialLikedStatus: res.data.Liked, // 记录初始收藏状态
-              initialCardStatus: res.data.Voted, // 记录初始收藏状态
+              initialCardStatus: res.data.Voted, // 记录初始签到卡状态
             });
-            // 将新获取的数据存入缓存
-            wx.setStorageSync('detailData', res.data);
+            wx.setStorageSync('detailData', res.data); // 缓存数据
+            this.updateCharts(); // 更新图表数据
           }
-          this.setData({
-            isLoading:false,
-          })
-          // this.setData({
-          //   isLoading:false,
-          //   isSuccess:true,
-          // })
-          // setTimeout(() => {
-          //   this.setData({isSuccess:false})
-          // }, 500);
-        }).catch((error) => {
+        } catch (error) {
           console.error('获取角色详情失败:', error);
           this.setData({
-            isFail:true,
-            isLoading:false,
-          })
-          // 800毫秒后关闭弹窗
+            isFail: true,
+            failReason: '数据加载失败喵 (⋟﹏⋞)',
+          });
           setTimeout(() => {
-            this.setData({isFail: false });
+            this.setData({ isFail: false });
           }, 800);
-          return;
-        });
+        } finally {
+          this.setData({ isLoading: false });
+        }
       }
     } else {
       console.error("gid 未定义或无效:", options.gid);
       this.setData({
-        isFail:true
-      })
-      // 800毫秒后关闭弹窗
+        isFail: true,
+        failReason: '无效的参数喵 (⋟﹏⋞)',
+      });
       setTimeout(() => {
-        this.setData({isFail: false });
+        this.setData({ isFail: false });
       }, 800);
-      return;
     }
-
+  
+    // 如果用户信息中有头像，设置到页面数据中
     if (userInfo && userInfo.avatarUrl) {
       this.setData({
         avatarUrl: userInfo.avatarUrl,
       });
     }
-
-    // 调用 incrementViews 来增加 views
+  
+    // 调用增加 views 的方法
     increaseViews(gid).catch(error => {
       console.error("增加 views 失败:", error);
     });
@@ -845,9 +850,9 @@ Page({
   
     // 设置默认分享内容
     return {
-      title: `${userInfo.nickName} 邀请你一起为 ${detailData.Name} 打call`,
+      title: `${userInfo.nickName}邀请你一起为${detailData.Name}打call`,
       path: `/pages/welcome/welcome?inviter=${encodeURIComponent(userInfo.nickName)}&character=${encodeURIComponent(detailData.Name)}&gid=${detailData.ID}`,
-      imageUrl: '', // 使用默认页面截图
+      imageUrl: detailData.AvatarSrc, // 使用默认页面截图
     };
   },
   
@@ -856,12 +861,14 @@ Page({
     const detailData = wx.getStorageSync('detailData');
   
     return {
-      title: `${userInfo.nickName} 邀请你一起为 ${detailData.Name} 打call`,
-      query: {
-        inviter: userInfo.nickName,
-        character: detailData.Name,
-        gid: detailData.ID,
-      },
+      title: `${userInfo.nickName}邀请你一起为${detailData.Name}打call`,
+      query: 'inviter='+encodeURIComponent(userInfo.nickName)+'&character='+encodeURIComponent(detailData.Name)+'&gid='+detailData.ID,
+      // {
+      //   inviter: encodeURIComponent(userInfo.nickName),
+      //   character: encodeURIComponent(detailData.Name),
+      //   gid: detailData.ID,
+      // },
+      imageUrl:detailData.AvatarSrc
     };
   },
 })

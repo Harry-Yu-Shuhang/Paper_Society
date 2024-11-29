@@ -10,8 +10,6 @@
   margin-top: 0; /* 顶部无间隙 */
   flex-grow: 1; /* 使容器在页面中扩展 */
   min-height: 100vh; /* 保证填充满整个页面高度 */
-  max-width: 100vh; /* 限制页面宽度 */
-  overflow: hidden; /* 防止溢出 */
 }
 
 .user-info {
@@ -29,7 +27,6 @@
   height: 160rpx;
   border-radius: 50%;
   margin-right: 30rpx;
-  min-width: 160rpx;
   box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
@@ -101,11 +98,13 @@
   font-size: 15px;
   font-weight: bold;
   color: #888;
+  white-space: nowrap;
 }
 
 .stat-over-user{
   font-size: 10px;
   color:#999;
+  white-space: nowrap;
 }
 
 .stat-icon{
@@ -116,7 +115,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .section-title {
@@ -151,6 +150,8 @@
 
 .instruction{
   width:460rpx;
+  white-space:nowrap;
+  max-width:460rpx;
 }
 
 
@@ -162,7 +163,7 @@
   display: flex;
   flex-direction: column;
   gap: 16rpx;
-  min-width: 650rpx;
+  width: 650rpx;
 }
 
 .leaderboard__profile {
@@ -294,7 +295,6 @@ body {
 /* 公众号样式结束 */
 
 page{
-  overflow-x: hidden;
   touch-action: pan-y; /* 禁止水平滑动，只允许垂直滑动 */
 }
 

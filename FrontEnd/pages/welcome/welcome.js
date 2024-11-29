@@ -59,7 +59,10 @@ Page({
   },
 
   async onLoad(options) {
-    const { inviter, character, gid } = options;
+    // const { inviter, character, gid } = options;
+    const inviter = decodeURIComponent(options.inviter);
+    const character = decodeURIComponent(options.character);
+    const gid = options.gid
     if (inviter && character && gid) {
       console.log(inviter,character,gid)
       // 将邀请信息存入缓存
@@ -199,7 +202,7 @@ Page({
     try {
       const userInfo = this.data.userInfo || {};
       // if (userInfo.isNewUser===true){
-        userInfo.nickName = "新用户";
+        userInfo.nickName = "新同学";
         this.setData({
           hasUserInfo:true,
           userInfo,
@@ -225,8 +228,18 @@ Page({
 
 
   async handleUserLogin() {
-    const { userInfo } = this.data;
+    const userInfo  = this.data.userInfo;
     try {
+      const openID = userInfo.openID;
+      if (!openID) {
+          console.error('OpenID 为空，无法完成注册流程');
+          wx.showToast({
+            title: '网络连接失败',
+            icon: 'none'
+          })
+          this.setData({hasUserInfo:false})
+          return;
+      }
       const response = await sendUserInfo(userInfo);
       if (response && typeof response === 'object') {
         // console.log("userInfo是:",userInfo)
@@ -267,35 +280,35 @@ Page({
     }, delayTime);
   },
 
+  /**
+   * 用户点击右上角分享
+   */
   onShareAppMessage() {
     const userInfo=wx.getStorageSync('userInfo')
-    // 设置默认分享内容
+    const promise = new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          userName: 'gh_e0b65c8a9341',  
+          path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
+          withShareTicket: true,
+          miniprogramType: 0,
+          title: userInfo.nickName || '新同学'+'邀请你加入纸片社',
+        })
+      }, 2000)
+    })
     return {
-      title: '', // 分享标题，默认可以替换为你的小程序名称或页面特定标题
+      userName: 'gh_e0b65c8a9341',  
       path: '/pages/welcome/welcome', // 分享路径，必须以 / 开头
-      imageUrl: '', // 使用默认页面截图，不设置自定义图片
-      promise: new Promise(resolve => {
-        // 可以在这里动态生成分享内容，如果不需要动态生成，可删除 promise 参数
-        setTimeout(() => {
-          resolve({
-            title: userInfo.nickName+'邀请你一起为爱发电',
-            path: '/pages/welcome/welcome',
-            imageUrl: '', // 使用默认截图
-          });
-        }, 1000); // 1秒延迟模拟异步操作
-      })
-    };
+      withShareTicket: true,
+      miniprogramType: 0,
+      title: userInfo.nickName+'邀请你加入纸片社',
+      promise 
+    }
+
   },
   onShareTimeline(){
     return {
-      title: '加入纸片社，一起为你的二次元白月光发电吧～(っ●ω●)っ',
-      path: '/pages/welcome/welcome',
-      // query: {
-      //   key: value
-      // },
-      // imageUrl: ''
+      title: '加入纸片社，一起为你最爱的二次元老婆们发电吧～(っ●ω●)っ',
     }
   },
-
-  
 });

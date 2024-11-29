@@ -135,7 +135,7 @@
       bindtap="closeCallModal"
     />
     <view class="call-text">
-      <text>{{callModalData.inviter}}邀请你给{{callModalData.character}} 打call</text>
+      <text>{{callModalData.inviter}}邀请你给{{callModalData.character}}打call</text>
     </view>
     <view class="call-buttons">
       <van-button

@@ -331,8 +331,9 @@ func (g UpdateRecordsController) UpdateCardRecords(c *gin.Context) {
 	}
 
 	var count int64
-	startOfDay := time.Now().Truncate(24 * time.Hour).Unix()
-
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	now := time.Now().In(loc)
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Unix()
 	// 检查今天是否已送过签到卡
 	err := dao.Db.Table("give_card_records").
 		Where("user_id = ? AND girl_id = ? AND given_at >= ?", userID, girlID, startOfDay).
@@ -358,7 +359,7 @@ func (g UpdateRecordsController) UpdateCardRecords(c *gin.Context) {
 			newRecord := models.GiveCardRecord{
 				UserID:  userID,
 				GirlID:  girlID,
-				GivenAt: startOfDay,
+				GivenAt: time.Now().Unix(),
 			}
 			insertErr = dao.Db.Create(&newRecord).Error
 		}()
