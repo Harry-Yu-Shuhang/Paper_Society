@@ -242,6 +242,21 @@ Page({
     updatedRating: null, // 新的评分，仅在必要时更新到后端
     initialLikedStatus:false,//第一次进入页面的时候的收藏状态
     initialCardStatus:false,//第一次进入页面的时候的签到卡状态
+    showGongzhonghao: false, // 控制弹窗显示
+  },
+
+  // 显示公众号弹窗
+  onShowGongzhonghao() {
+    this.setData({
+      showGongzhonghao: true,
+    });
+  },
+
+  // 关闭公众号弹窗
+  closeGongzhonghaoWindow() {
+    this.setData({
+      showGongzhonghao: false,
+    });
   },
 
   onChangeMyRate(event) {
@@ -344,6 +359,19 @@ Page({
         wx.setStorageSync('userInfo', userInfo); // 更新缓存中的 userInfo
         wx.setStorageSync('detailData', this.data.detailData); // 更新缓存中的 detailData
         // updateCardRecord(userId, gid)//最后发送请求给后台
+        try {
+          updateCardRecord(userId, gid)//最后发送请求给后台
+        } catch (error) {
+          this.setData({
+            isFail: true, // 显示失败弹窗
+            failReason: '送签到卡失败，信号似乎不大好'
+          });
+          // 1秒后关闭失败弹窗
+          setTimeout(() => {
+            this.setData({ isFail: false });
+          }, 500);
+          return;
+        }
     } catch (error) {
         console.error('签到卡请求失败:', error);
         this.setData({
@@ -460,6 +488,10 @@ Page({
     const character = options.character;
   
     if (inviter && character && gid) {
+      this.setData({
+        isFail:true,
+        failReason:"请打开纸片社小程序,查看该页面",
+      })
       wx.redirectTo({
         url: `/pages/welcome/welcome?inviter=${inviter}&character=${character}&gid=${gid}`
       });
@@ -473,18 +505,28 @@ Page({
       });
   
       // 检查缓存是否有匹配的 detailData
-      const cachedDetailData = wx.getStorageSync('detailData');
-      if (cachedDetailData && cachedDetailData.ID === gid) {
-        this.setData({
-          detailData: cachedDetailData,
-          RateNum: cachedDetailData.RateNum.reduce((acc, curr) => acc + curr, 0),
-          initialLikedStatus: cachedDetailData.Liked, // 记录初始收藏状态
-          initialCardStatus: cachedDetailData.Voted, // 记录初始签到卡状态
-        });
-        this.updateCharts(); // 更新图表数据
-      } else {
+      //const cachedDetailData = wx.getStorageSync('detailData');
+      // if (cachedDetailData && cachedDetailData.ID === gid) {
+      //   this.setData({
+      //     detailData: cachedDetailData,
+      //     RateNum: cachedDetailData.RateNum.reduce((acc, curr) => acc + curr, 0),
+      //     initialLikedStatus: cachedDetailData.Liked, // 记录初始收藏状态
+      //     initialCardStatus: cachedDetailData.Voted, // 记录初始签到卡状态
+      //   });
+      //   this.updateCharts(); // 更新图表数据
+      // } else {
         // 如果缓存不存在或ID不匹配，发起请求并存入缓存
         this.setData({ isLoading: true });
+        // 增加逻辑: 更新 initialGirlsData 中的 views
+        let initialGirlsData = wx.getStorageSync('initialGirlsData') || []; // 获取缓存
+        if (Array.isArray(initialGirlsData)) {
+          const girlIndex = initialGirlsData.findIndex(item => item.id === gid); // 查找对应的 id
+          if (girlIndex !== -1) {
+            // 更新 views 字段
+            initialGirlsData[girlIndex].views = (initialGirlsData[girlIndex].views || 0) + 1;
+            wx.setStorageSync('initialGirlsData', initialGirlsData); // 更新缓存
+          }
+        }
         try {
           const res = await fetchGirlDetail(gid, userId);
           if (res && res.data) {
@@ -509,7 +551,7 @@ Page({
         } finally {
           this.setData({ isLoading: false });
         }
-      }
+      //}
     } else {
       console.error("gid 未定义或无效:", options.gid);
       this.setData({
@@ -593,8 +635,9 @@ Page({
   /**
    * 生命周期函数--监听页面隐藏
    */
-  onHide() {
-
+  async onHide() {
+    console.log("onHide启动")
+    this.onUnload()
   },
 
   /**
@@ -607,17 +650,7 @@ Page({
     const girlId = this.data.gid;
     const initialLikedStatus = this.data.initialLikedStatus; // 初始收藏状态
     const currentLikedStatus = this.data.detailData.Liked; // 当前收藏状态
-    const initialCardStatus = this.data.initialCardStatus; // 初始签到卡状态
-    const currentCardStatus = this.data.detailData.Voted; // 当前签到卡状态
     const girlName = this.data.detailData.Name; // 动态获取角色名
-
-    if (userId && initialCardStatus !== currentCardStatus) {
-      try {
-        updateCardRecord(userId, girlId)//最后发送请求给后台
-      } catch (error) {
-        console.error('同步签到卡状态到后端失败:', error);
-      }
-    }
 
     //同步收藏夹
     if (userId && initialLikedStatus !== currentLikedStatus) {
@@ -825,7 +858,8 @@ Page({
       clearTimeout(timeout); // 清除定时器
       this.setData({
         isFail: true, // 显示失败弹窗
-        failReason: '无效的用户信息'
+        failReason: '无效的用户信息',
+        isLoading:false,
       });
       // 1秒后关闭失败弹窗
       setTimeout(() => {

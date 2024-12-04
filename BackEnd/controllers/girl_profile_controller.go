@@ -177,7 +177,10 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 	go func() {
 		defer wg.Done()
 		var votedCount int64
-		startOfDay := time.Now().Truncate(24 * time.Hour).Unix()
+		//startOfDay := time.Now().Truncate(24 * time.Hour).Unix()
+		loc := time.FixedZone("Asia/Shanghai", 8*3600) // UTC+8
+		now := time.Now().In(loc)
+		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Unix()
 		errVoted = dao.Db.Table("give_card_records").
 			Where("user_id = ? AND girl_id = ? AND given_at >= ?", userID, gid, startOfDay).
 			Count(&votedCount).Error
@@ -250,8 +253,9 @@ func (g GirlProfileController) GetGirlDetail(c *gin.Context) {
 		LikeNum:       stats.LikeNum,
 		RateNum:       []int{stats.RateNumOne, stats.RateNumTwo, stats.RateNumThree, stats.RateNumFour, stats.RateNumFive},
 		Voted:         voted,
-		Liked:         liked,  // 设置 Liked 状态
-		MyRate:        myRate, // 设置 MyRate 值
+		Liked:         liked,             // 设置 Liked 状态
+		MyRate:        myRate,            // 设置 MyRate 值
+		Contributors:  girl.Contributors, //V1.1.5新增字段
 	}
 
 	// 返回包含排名的详细数据

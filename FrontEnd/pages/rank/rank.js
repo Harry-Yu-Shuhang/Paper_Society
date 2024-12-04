@@ -1,5 +1,7 @@
 import { fetchHotRankList, fetchScoreRankList, fetchScoreRankListByIds, fetchHotRankListByIds, fetchGirlDetail, fetchWaterFallList, fetchUserFavorites, sendUserInfo } from '../../utils/request';
+import {card_bonus} from '../../utils/common_data'
 let rankType = 'hotRank';
+let photoStep = 10000 // 每次返回的数据条数
 
 // 预加载角色库数据
 async function preloadRankData() {
@@ -35,6 +37,7 @@ Page({
     isNewUser:false,
     showCallModal:false,
     // userName:"新用户"
+    card_bonus:card_bonus,
   },
 
   async fetchRankData(rankType, offset = 0, isRefresh = false) {
@@ -127,7 +130,7 @@ Page({
     try {
       // Calculate offset and the next batch of IDs
       const offset = this.data.currentCount;
-      const nextBatchIds = this.data.idListCache.slice(offset, offset + 100);//一次获取100个
+      const nextBatchIds = this.data.idListCache.slice(offset, offset + photoStep);//一次获取10000个
   
       // Check if nextBatchIds is a valid array
       if (!Array.isArray(nextBatchIds) || nextBatchIds.length === 0) {
@@ -290,28 +293,28 @@ Page({
     
   
     // 加载排行榜数据或缓存
-    const hotRankCache = wx.getStorageSync('hotRankData');
-    const initialGirlsCache = wx.getStorageSync('initialGirlsData');
-    const userFavorites = wx.getStorageSync('userFavorites');
+    //const hotRankCache = wx.getStorageSync('hotRankData');
+    //const initialGirlsCache = wx.getStorageSync('initialGirlsData');
+    //const userFavorites = wx.getStorageSync('userFavorites');
   
-    if (hotRankCache && hotRankCache.idListCache) {
-      this.setData({
-        idListCache: hotRankCache.idListCache,
-        fetchRankList: hotRankCache.fetchRankList,
-        currentCount: hotRankCache.fetchRankList.length,
-        hasMoreData: hotRankCache.hasMoreData,
-        loading: false,
-      });
-    } else {
+    // if (hotRankCache && hotRankCache.idListCache) {
+    //   this.setData({
+    //     idListCache: hotRankCache.idListCache,
+    //     fetchRankList: hotRankCache.fetchRankList,
+    //     currentCount: hotRankCache.fetchRankList.length,
+    //     hasMoreData: hotRankCache.hasMoreData,
+    //     loading: false,
+    //   });
+    // } else {
       this.fetchRankData('hotRank');
-    }
+    //}
   
-    if (!initialGirlsCache) {
+    //if (!initialGirlsCache) {
       preloadRankData();
-    }
-    if (!userFavorites) {
+    //}
+    //if (!userFavorites) {
       this.loadUserFavorites();
-    }
+    //}
   },
 
     // 关闭新用户弹窗,显示签到弹窗
@@ -408,6 +411,7 @@ Page({
     if (!userInfo.isSameDay && !userInfo.isNewUser) {
       this.setData({ showDailySignModal: true });
       userInfo.isSameDay = true;
+      userInfo.cardCount+=card_bonus;
       wx.setStorageSync('userInfo', userInfo);
     }
   },

@@ -11,6 +11,7 @@ type Girl struct { //从girls表获取数据
 	BackgroundSrc string
 	Introduction  string
 	Age           string
+	Contributors  string //V1.1.5新增
 }
 
 // TableName 指定表名

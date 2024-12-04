@@ -96,13 +96,13 @@ Page({
           '上传头像超时'
         );
         newAvatarUrl = uploadRes.fileID;
-  
+        console.log("originalAvatarUrl是:",originalAvatarUrl)
         // 删除旧头像文件
         if (originalAvatarUrl?.startsWith('cloud://')) {
           await this.withTimeout(
             wx.cloud.deleteFile({ fileList: [originalAvatarUrl] }),
             5000, // 超时时间 5 秒
-            '删除旧头像超时'
+            '上传头像超时'
           );
         }
       }

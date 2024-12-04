@@ -1,0 +1,1 @@
+ALTER TABLE girl_statistics ADD COLUMN gem_num INT DEFAULT 0;

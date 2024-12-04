@@ -22,6 +22,8 @@ type GirlProfile struct {
 	Liked         bool
 
 	MyRate int
+
+	Contributors string //V1.1.5新增字段，贡献者名单
 }
 
 type GiveCardRecord struct {

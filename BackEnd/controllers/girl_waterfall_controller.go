@@ -2,11 +2,9 @@ package controllers
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"paper_community/dao"
 	"paper_community/models"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,15 +34,11 @@ func (g GirlWaterFallController) PostRandomGirls(c *gin.Context) {
 		query = query.Where("id NOT IN (?)", request.RenderedIds)
 	}
 
-	// 查询数据库并限制结果为20个 20要和前端一致哦
-	if err := query.Limit(20).Find(&girls).Error; err != nil {
+	// 使用 ORDER BY RAND() 随机选择 20 个数据，20要和前端一致
+	if err := query.Order("RAND()").Limit(20).Find(&girls).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data"})
 		return
 	}
-
-	// 随机打乱数据顺序
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	r.Shuffle(len(girls), func(i, j int) { girls[i], girls[j] = girls[j], girls[i] })
 
 	// 转换为 GirlProfile 格式
 	// selectedGirls := make([]GirlProfile, len(girls))

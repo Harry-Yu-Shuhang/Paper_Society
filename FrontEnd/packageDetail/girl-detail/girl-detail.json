@@ -7,7 +7,8 @@
     "fail-window":"/components/fail-window/index",
     "success-window":"/components/success-window/index",
     "loading-window":"/components/loading-window/index",
-    "van-dialog": "@vant/weapp/dialog/index"
+    "van-dialog": "@vant/weapp/dialog/index",
+    "van-button": "@vant/weapp/button/index"
   },
   "enablePullDownRefresh": true
 }

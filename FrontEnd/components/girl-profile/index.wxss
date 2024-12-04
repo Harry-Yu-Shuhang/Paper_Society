@@ -68,9 +68,10 @@
   font-size: 28rpx;
   letter-spacing: 2px;
   margin-top: 6rpx;
-  min-height: 240rpx; /* 设置最小高度为 240rpx */
+  min-height: 370rpx; /* 设置最小高度为 240rpx */
   white-space: normal; /* 允许内容自动换行 */
   overflow-wrap: break-word; /* 文字超出时自动换行 */
   display: block; /* 确保 text 标签可以撑开高度 */
 }
+
 

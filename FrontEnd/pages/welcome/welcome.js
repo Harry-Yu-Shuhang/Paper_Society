@@ -121,6 +121,7 @@ Page({
     if (userInfo.openID) {
       try {
         const freshUserInfo = await fetchUserInfo(userInfo.openID);
+        //老用户
         if (!freshUserInfo.error) {
           // 更新 userInfo 中的字段，仅更新 freshUserInfo 中存在的字段
           const updatedUserInfo = { ...userInfo }; // 保留原有字段

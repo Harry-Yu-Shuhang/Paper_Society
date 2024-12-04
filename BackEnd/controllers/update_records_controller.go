@@ -331,7 +331,7 @@ func (g UpdateRecordsController) UpdateCardRecords(c *gin.Context) {
 	}
 
 	var count int64
-	loc, _ := time.LoadLocation("Asia/Shanghai")
+	loc := time.FixedZone("Asia/Shanghai", 8*3600) // UTC+8
 	now := time.Now().In(loc)
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Unix()
 	// 检查今天是否已送过签到卡

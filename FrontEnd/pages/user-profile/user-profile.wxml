@@ -54,7 +54,7 @@
   <view class="divider"></view>
 
   <view class="gongzhonghao">
-    <text class="instruction">投稿/技术交流/使用教程，请</text>
+    <text class="instruction">问题反馈/投稿等，请</text>
     <van-button round plain hairline type="info" size="small" bind:tap="onShowGongzhonghao">前往公众号</van-button>
   </view>
 

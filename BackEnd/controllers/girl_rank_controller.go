@@ -15,7 +15,7 @@ var MySQLVersion string
 
 type GirlRankController struct{}
 
-var photoStep = 100 // 每次返回的数据条数
+var photoStep = 10000 // 每次返回的数据条数
 
 // GetGirlsHotRank handles GET requests for the hot rank
 func (g GirlRankController) GetGirlsHotRank(c *gin.Context) {

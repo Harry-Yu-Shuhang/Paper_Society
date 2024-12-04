@@ -89,7 +89,7 @@ Page({
    /**
    * 获取用户收藏的角色
    */
-  async loadUserFavorites() {
+  async loadUserFavorites(isRefresh=false) {
     const userInfo = wx.getStorageSync('userInfo');
     const userId = userInfo ? userInfo.userID : null;
     const userFavorites=wx.getStorageSync('userFavorites');
@@ -100,7 +100,8 @@ Page({
       return;
     }
     try {    
-      if(!userFavorites){
+      //如果缓存没有或者刷新则更新
+      if(!userFavorites||isRefresh){
       const response = await fetchUserFavorites(userId);
       const { favorites: favoritesList } = response;
       updatedFavoritesList = favoritesList.map(item => ({
@@ -116,7 +117,7 @@ Page({
           return b.created_at - a.created_at;
         }
       });
-    }else{
+     }else{//如果缓存有则不更新
       updatedFavoritesList = userFavorites.map(item => ({
         ...item,
         daysAgo: this.calculateDaysSince(item.created_at)
@@ -326,7 +327,7 @@ Page({
       // 加载用户排名信息
       await this.getUserRanking();
       // 加载用户收藏信息
-      await this.loadUserFavorites();
+      await this.loadUserFavorites(true);
       // 如果超时，直接退出
       if (isTimeout) return;
       // 清除计时器并更新成功状态

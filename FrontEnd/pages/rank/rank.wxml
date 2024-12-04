@@ -54,7 +54,7 @@
             color='#ffa2e1'  
             size="22" 
             />
-            <text class="text-card">签到卡(3张)</text>
+            <text class="text-card">签到卡({{card_bonus}}张)</text>
             <van-button round plain type="info" size="small" bind:tap="closeNewUserModal" class="acceptBonusButton">开心收下</van-button>
           </view>
         </view>
@@ -81,7 +81,7 @@
             color='#ffa2e1'  
             size="22" 
             />
-            <text class="text-card">签到卡(3张)</text>
+            <text class="text-card">签到卡({{card_bonus}}张)</text>
             <van-button round plain type="info" size="small" bind:tap="closeDailySignModal" class="acceptBonusButton">开心收下</van-button>
           </view>
           <text class="text-attention">小贴士:每天北京时间0:00重置签到卡哦</text>
@@ -135,7 +135,10 @@
       bindtap="closeCallModal"
     />
     <view class="call-text">
-      <text>{{callModalData.inviter}}邀请你给{{callModalData.character}}打call</text>
+      <text class="invite-text">{{callModalData.inviter}}</text>
+      <text>邀请你给</text>
+      <text class="invite-text">{{callModalData.character}}</text>
+      <text>打call</text>
     </view>
     <view class="call-buttons">
       <van-button

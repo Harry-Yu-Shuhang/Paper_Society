@@ -32,10 +32,12 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 	var userHot int
 	var loginTime int64
 	var nickName string
+	var avatarUrl string
+	card_bonus := 6
 
 	isSameDayLogin := false
 	if isNewUser {
-		userInfo.CardCount = 6
+		userInfo.CardCount = 12
 		userInfo.CreateTime = time.Now().Unix()
 		// userHot = calculateUserHot(userInfo.ID) // 计算新用户的热度
 		userInfo.UserHot = 0
@@ -56,10 +58,11 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		createTime = userInfo.CreateTime
 		loginTime = createTime
 		nickName = userInfo.NickName
+		avatarUrl = userInfo.AvatarUrl
 	} else {
 		isSameDayLogin = isSameDay(existingUser.LoginTime, userInfo.LoginTime)
 		if !isSameDayLogin {
-			existingUser.CardCount += 3
+			existingUser.CardCount += card_bonus
 		}
 		existingUser.LoginTime = userInfo.LoginTime
 
@@ -76,6 +79,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		createTime = existingUser.CreateTime
 		loginTime = existingUser.LoginTime
 		nickName = existingUser.NickName
+		avatarUrl = existingUser.AvatarUrl
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -88,6 +92,7 @@ func (u UserController) CreateUserInfo(c *gin.Context) {
 		"userHot":    userHot,
 		"loginTime":  loginTime,
 		"nickName":   nickName,
+		"avatarUrl":  avatarUrl,
 	})
 }
 

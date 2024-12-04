@@ -82,7 +82,6 @@ Page({
 
   async fetchNewDataFromBackend() {
     this.setData({ isLoading: true });
-
     let isTimeout = false;
     const loadingTimeout = setTimeout(() => {
       isTimeout = true;
@@ -288,7 +287,15 @@ Page({
     if(this.data.searchExist){
       return;
     }
-    this.loadData(true,true);
+    //this.loadData(true,true);
+    this.loadData(true, true).then(() => {
+      // 获取更新后的 columns 数据
+      const updatedColumns = this.data.columns;
+      // 合并所有列的数据为一个数组
+      const allItems = [...updatedColumns[0], ...updatedColumns[1]];
+      // 更新缓存中的 initialGirlsData
+      wx.setStorageSync('initialGirlsData', allItems);
+    });
   },
 
   onShow(){

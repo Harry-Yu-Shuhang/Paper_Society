@@ -65,6 +65,7 @@
 
 page{
   background-color: #b3d4db;
+  overflow: hidden;
 }
 
 .welcome-new{

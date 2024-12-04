@@ -11,6 +11,20 @@
 <scroll-view enable-flex scroll-y class="container">
   <image src="{{detailData.BackgroundSrc}}" class="background-img"/>
   <image src="{{detailData.GirlSrc}}" class="girl-image" mode="aspectFill"/>
+
+  <!-- V1.1.5 -->
+  <!-- 贡献者显示 -->
+  <view class="contributors">
+    <text class="contributors-title">创建者：</text>
+    <text class="single-contributor">{{detailData.Contributors}}</text>
+    <text class="own-text">想拥有属于自己的词条？</text>
+    <view class="to-gongzhonghao">
+      <text class="own-text">请前往</text>
+      <van-button round plain hairline type="info" size="mini" bind:tap="onShowGongzhonghao" class="gongzhonghao-button">公众号</van-button>
+      <text class="own-text">进行投稿～</text>
+    </view>
+  </view>
+
   <girl-profile girlProfile="{{detailData}}" 
   class="girl-profile"/>
   <view class="horizon-line"></view>
@@ -125,3 +139,20 @@
     </view>
   </view>
 </scroll-view>
+
+<!-- 公众号弹窗 -->
+<view wx:if="{{showGongzhonghao}}" class="gongzhonghao-window">
+  <view class="gongzhonghao-content">
+    <van-icon 
+      name="close" 
+      size="24px" 
+      class="close-icon" 
+      bindtap="closeGongzhonghaoWindow" 
+    />
+    <view class="text-section">
+      <text class="text-line">长按图片识别二维码</text>
+      <text class="text-line">关注纸片社公众号</text>
+    </view>
+    <image class="qrcode-image" show-menu-by-longpress src="/images/gongzhonghao.jpg" mode="aspectFit" />
+  </view>
+</view>
