@@ -1,5 +1,4 @@
 const baseURL = "http://127.0.0.1:80"; // 替换成你的后端服务器地址
-//const baseURL = "kqpkwohx.golang-5kg8.11w7wp58.5daxkdfj.com"; // 替换成你的后端服务器地址（内网）
 const user_login = '/user/login';
 const girls_rank_hot = '/girls/rank/hot';
 const girls_rank_score = '/girls/rank/score';
